@@ -1,0 +1,257 @@
+#!/usr/bin/env bash
+
+# dd-generic.lib
+#
+# DesmoDyne library of generic bash functions
+#
+# author  : stefan schablowski
+# contact : stefan.schablowski@desmodyne.com
+# created : 2018-07-16
+
+
+# TODO: fix shellcheck issues
+# TODO: review #!/usr/bin/env bash
+# TODO: do not use global variables, but function parameters
+# TODO: document parameters and return values
+# TODO: really set variables in here and use them elsewhere ?
+# TODO: review function names, most of them do more than the name suggests
+# TODO: use named parameters ? https://stackoverflow.com/a/30033822
+# TODO: add code location indicator to log messages ?
+
+
+# define functions: http://stackoverflow.com/a/6212408
+
+
+# -----------------------------------------------------------------------------
+# determine path to other scripts in this project
+
+# In production, all related scripts are installed using a distribution package
+# and any (related or other, e.g. Linux system) tools are found in PATH;
+# during development, this is not necessarily the case: Test if all tools are
+# found and if one is missing, append the path this script resides in to PATH
+# and retry. This does not mix package / production and development versions,
+# either all related scripts are taken from PATH or all are taken from local.
+
+function determine_path_to_sub_scripts
+{
+    echo 'determine path to sub scripts:'
+
+    amended_path=false
+
+    for req_tool in ${req_tools}
+    do
+        # TODO: align output (here and below)
+        # https://stackoverflow.com/a/677212
+        # https://github.com/koalaman/shellcheck/wiki/SC2230
+        echo -n "  ${req_tool}: "
+        if [ -x "$(command -v "${req_tool}")" ]
+        then
+            echo 'OK'
+        else
+            echo 'No such file or directory'
+            PATH="${path_to_this_script}:${PATH}"
+            amended_path=true
+            break
+        fi
+    done
+
+    if [ "${amended_path}" = true ]
+    then
+        echo 'amend PATH and retry:'
+        for req_tool in ${req_tools}
+        do
+            echo -n "  ${req_tool}: "
+            if [ -x "$(command -v "${req_tool}")" ]
+            then
+                echo 'OK'
+            else
+                echo 'No such file or directory'
+                return 1
+            fi
+        done
+    fi
+
+    echo
+}
+
+# -----------------------------------------------------------------------------
+function determine_platform
+{
+    echo -n 'determine platform: '
+
+    # http://stackoverflow.com/a/18434831
+
+    # TODO: strictly speaking, setting variables in here is a side effect
+
+    case "${OSTYPE}" in
+        darwin*)
+            echo 'OK'
+            grep='ggrep'
+            sed='gsed'
+            xargs='gxargs'
+            ;;
+        linux-*)
+            echo 'OK'
+            grep='grep'
+            sed='sed'
+            xargs='xargs'
+            ;;
+        *)
+            echo 'ERROR'
+            echo "unsupported operating system: ${OSTYPE}"
+            return 1
+            ;;
+    esac
+}
+
+# -----------------------------------------------------------------------------
+function proc_cmd_line_args
+{
+    echo -n 'process command line arguments: '
+
+    # NOTE: for some reason, if no parameters are passed,
+    # "$#" is 0, but "$0" still returns the name of the script being run
+
+    # name of the script being run:
+    # http://stackoverflow.com/q/192319
+    script_name="$(basename "$0")"
+
+    # TODO: this fails as this function
+    # is called with no parameters
+    if [ $# -ne 1 ]
+    then
+        echo 'ERROR'
+        echo "wrong number of arguments: $#"
+        echo
+        usage
+        return 1
+    fi
+
+    # http://stackoverflow.com/a/14203146
+    while [ $# -gt 0 ]
+    do
+        key="$1"
+
+        case "${key}" in
+          # NOTE: must escape -?, seems to act as wildcard otherwise
+          -\?|--help) echo 'HELP'; echo; usage; return 1 ;;
+
+          *)  if [ -z "${config_file}" ]
+              then
+                  config_file="$1"
+              else
+                  echo 'ERROR'
+                  echo 'wrong number of arguments'
+                  echo
+                  usage
+                  return 1
+              fi
+        esac
+
+        # move past argument or value
+        shift
+    done
+
+    # TODO: try to use ~/.<script_name>.yaml or so if no config file is passed ?
+    # TODO: use absolute path to config file in output ?
+
+    # config file is a mandatory command line argument
+    if [ -z "${config_file}" ]
+    then
+        echo 'ERROR'
+        echo 'wrong number of arguments'
+        echo
+        usage
+        return 1
+    fi
+
+    # http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_07_01.html
+    if [ ! -e "${config_file}" ]
+    then
+        echo 'ERROR'
+        echo "${config_file}: No such file or directory"
+        return 1
+    fi
+
+    if [ ! -r "${config_file}" ]
+    then
+        echo 'ERROR'
+        echo "${config_file}: File is not readable"
+        return 1
+    fi
+
+    echo 'OK'
+}
+
+# -----------------------------------------------------------------------------
+function usage
+{
+    # TODO: space between << and 'EOT' makes a
+    # difference for atom syntax highlighting
+    # TODO: align properly and remove leading space when printing ?
+
+    read -r -d '' msg_tmpl <<'EOT'
+Usage: %s <config file>
+
+mandatory arguments:
+  config file           absolute path to configuration file
+
+optional arguments:
+  -?, --help            print this help message
+EOT
+
+    # shellcheck disable=SC2059
+    printf "${msg_tmpl}\\n" "${script_name}"
+}
+
+# -----------------------------------------------------------------------------
+function validate_config_settings
+{
+    echo -n 'validate configuration settings: '
+
+    # TODO: verify path_to_sec_loc is an absolute path ?
+    # TODO: resolve symbolic links into real path ?
+
+    if [ -e "${path_to_sec_loc}" ]
+    then
+        if [ -d "${path_to_sec_loc}" ]
+        then
+            echo 'OK'
+        else
+            echo 'ERROR'
+            echo 'path exists, but is not a directory:'
+            echo "${path_to_sec_loc}"
+            return 1
+        fi
+    else
+        # split paths into its components
+        # https://askubuntu.com/a/600252
+        # TODO: this fails with whitespace in path
+        comps="$("${xargs}" -n 1 -d '/' <<< "${path_to_sec_loc}" | "${xargs}")"
+
+        # turn path components into array
+        # https://stackoverflow.com/a/13402368
+        # NOTE: word splitting is intended here
+        # shellcheck disable=SC2206
+        array=(${comps})
+
+        # NOTE: alternate / shorter approach:
+        # https://github.com/koalaman/shellcheck/wiki/SC2207
+        # mapfile -t array < \
+        #     <("${xargs}" -n 1 -d '/' <<< "${path_to_sec_loc}" | "${xargs}")
+
+        # if at least the first two path components exist,
+        # they are considered a solid base for the rest
+        # TODO: this is specific to local secure location
+        # TODO: this assumes at least two comps in path
+        if [ -d "/${array[0]}/${array[1]}" ]
+        then
+            echo 'OK'
+        else
+            echo 'ERROR'
+            echo 'path to secure location is not mounted:'
+            echo "${path_to_sec_loc}"
+            return 1
+        fi
+    fi
+}
