@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+# shellcheck shell=bash
 
 # dd-generic.lib
 #
@@ -9,8 +9,14 @@
 # created : 2018-07-16
 
 
+# NOTE: this library is not meant to be executed;
+# use defined functions in own scripts using e.g.
+#   source <path to this library>/dd-generic.lib
+#
+# no shell she-bang, but a shellcheck shell directive:
+# https://github.com/koalaman/shellcheck/issues/581
+
 # TODO: fix shellcheck issues
-# TODO: review #!/usr/bin/env bash
 # TODO: do not use global variables, but function parameters
 # TODO: document parameters and return values
 # TODO: really set variables in here and use them elsewhere ?
