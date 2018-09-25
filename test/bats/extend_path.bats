@@ -114,7 +114,10 @@ function setup
     return 0
 }
 
+# ------------------------------------------------------------------------------
+
 # https://github.com/bats-core/bats-core#run-test-other-commands
+
 @test 'extend_path without arguments fails, prints an error, does not change PATH' {
 
   path_before="${PATH}"
@@ -162,6 +165,8 @@ function setup
   # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
 }
+
+# ------------------------------------------------------------------------------
 
 @test 'extend_path with string as first argument fails, prints an error, does not change PATH' {
 
@@ -253,6 +258,8 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
 }
 
+# ------------------------------------------------------------------------------
+
 @test 'extend_path with two empty array arguments succeeds, does not change PATH' {
 
   req_tools=()
@@ -287,7 +294,7 @@ function setup
   [ "${output}" = "${first_line}" ]
 }
 
-@test 'extend_path with empty <req_tools> any path in <ext_paths> succeeds, does not change PATH' {
+@test 'extend_path with empty <req_tools> and any path in <ext_paths> succeeds, does not change PATH' {
 
   req_tools=()
   ext_paths=('this_path_is_not_used')
@@ -304,7 +311,7 @@ function setup
   [ "${output}" = "${first_line}" ]
 }
 
-@test 'extend_path with non-existent tool and empty <ext_paths> fails, does not change PATH' {
+@test 'extend_path with nonexistent tool and empty <ext_paths> fails, does not change PATH' {
 
   req_tools=('this_tool_does_not_exist')
   ext_paths=()
@@ -319,6 +326,44 @@ function setup
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
+}
+
+@test 'extend_path with existent tool and empty <ext_paths> succeeds, does not change PATH' {
+
+  req_tools=('ls')
+  ext_paths=()
+
+  path_before="${PATH}"
+  run extend_path req_tools ext_paths
+  path_after="${PATH}"
+
+  exp_line_2='  ls: OK'
+
+  [ "${path_before}" = "${path_after}" ]
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 0 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
+}
+
+@test 'extend_path with existent tool in PATH and any path in <ext_paths> succeeds, does not change PATH' {
+
+  req_tools=('ls')
+  ext_paths=('this_path_is_not_used')
+
+  path_before="${PATH}"
+  run extend_path req_tools ext_paths
+  path_after="${PATH}"
+
+  exp_line_2='  ls: OK'
+
+  [ "${path_before}" = "${path_after}" ]
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 0 ]
   # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }

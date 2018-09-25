@@ -140,7 +140,9 @@ function extend_path
     # https://unix.stackexchange.com/a/395103
     ext_paths_=('dummy' "${ext_paths_[@]}")
 
-    exit_code=0
+    # associative array with key = tool name and
+    # value = true if tool found, false otherwise
+    declare -A found_tools_map=()
 
     # https://stackoverflow.com/a/8880633
     for ext_path in "${ext_paths_[@]}"
@@ -153,6 +155,17 @@ function extend_path
 
         for req_tool in "${req_tools_[@]}"
         do
+            # NOTE: due to set -o nounset, need
+            # to work around key not existing:
+            # https://stackoverflow.com/a/35353851
+            # test if req_tool is in array keys and its value is true
+            # TODO: review this for one toolname being part of another
+            if [[ "${!found_tools_map[*]}" == *"${req_tool}"* ]] &&
+               [  "${found_tools_map[${req_tool}]}" = true ]
+            then
+                continue
+            fi
+
             # https://stackoverflow.com/a/677212
             # https://github.com/koalaman/shellcheck/wiki/SC2230
             # https://linux.die.net/man/1/bash
@@ -161,18 +174,33 @@ function extend_path
             if [ -x "$(command -v "${req_tool}")" ]
             then
                 echo 'OK'
-                exit_code=0
+                found_tools_map["${req_tool}"]=true
             else
                 echo 'FAIL'
-                exit_code=1
-                break
+                found_tools_map["${req_tool}"]=false
             fi
         done
+
+        all_tools_found=true
+
+        # https://stackoverflow.com/a/3113285
+        for req_tool in "${!found_tools_map[@]}"
+        do
+            if [ "${found_tools_map[${req_tool}]}" = false ]
+            then
+                all_tools_found=false
+            fi
+        done
+
+        if [ "${all_tools_found}" = true ]
+        then
+            return 0
+        fi
     done
 
     echo
 
-    return "${exit_code}"
+    return 1
 }
 
 
