@@ -147,18 +147,25 @@ function extend_path
     # https://stackoverflow.com/a/8880633
     for ext_path in "${ext_paths_[@]}"
     do
+        # test if first loop iteration
         if [ "${ext_path}" != 'dummy' ]
         then
-            echo "append ${ext_path} to PATH and retry:"
-            PATH="${PATH}:${ext_path}"
+            # test if path is already in PATH
+            if [[ "${PATH}" = *"${ext_path}"* ]]
+            then
+                continue
+            else
+                echo "append ${ext_path} to PATH and retry:"
+                PATH="${PATH}:${ext_path}"
+            fi
         fi
 
         for req_tool in "${req_tools_[@]}"
         do
+            # test if req_tool is in array keys and its value is true
             # NOTE: due to set -o nounset, need
             # to work around key not existing:
             # https://stackoverflow.com/a/35353851
-            # test if req_tool is in array keys and its value is true
             # TODO: review this for one toolname being part of another
             if [[ "${!found_tools_map[*]}" == *"${req_tool}"* ]] &&
                [  "${found_tools_map[${req_tool}]}" = true ]

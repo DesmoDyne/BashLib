@@ -330,7 +330,26 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
-@test 'extend_path with existent tool and empty <ext_paths> succeeds, does not change PATH' {
+@test 'extend_path with nonexistent tool and path already in PATH fails, does not change PATH' {
+
+  req_tools=('this_tool_does_not_exist')
+  ext_paths=('/usr/bin')
+
+  path_before="${PATH}"
+  run extend_path req_tools ext_paths
+  path_after="${PATH}"
+
+  exp_line_2='  this_tool_does_not_exist: FAIL'
+
+  [ "${path_before}" = "${path_after}" ]
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 1 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
+}
+
+@test 'extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, does not change PATH' {
 
   req_tools=('ls')
   ext_paths=()
@@ -349,7 +368,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
-@test 'extend_path with existent tool in PATH and any path in <ext_paths> succeeds, does not change PATH' {
+@test 'extend_path with tool in (unchanged) PATH and any path succeeds, does not change PATH' {
 
   req_tools=('ls')
   ext_paths=('this_path_is_not_used')
