@@ -64,6 +64,7 @@
 # TODO: if two tests have the same text and the second fails,
 #       both are reported as failures, even though the first succeeds
 # TODO: shellcheck parsing is severely messed up in here
+# TODO: permutate over all possible combinations of input arguments ?
 
 
 function setup
@@ -118,7 +119,7 @@ function setup
 
 # https://github.com/bats-core/bats-core#run-test-other-commands
 
-@test 'extend_path without arguments fails, prints an error, does not change PATH' {
+@test '#01 - extend_path without arguments fails, prints an error, does not change PATH' {
 
   path_before="${PATH}"
   run extend_path
@@ -138,7 +139,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
 }
 
-@test 'extend_path with one argument fails, prints an error, does not change PATH' {
+@test '#02 - extend_path with one argument fails, prints an error, does not change PATH' {
 
   path_before="${PATH}"
   run extend_path 'first_arg'
@@ -152,7 +153,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
 }
 
-@test 'extend_path with three arguments fails, prints an error, does not change PATH' {
+@test '#03 - extend_path with three arguments fails, prints an error, does not change PATH' {
 
   path_before="${PATH}"
   run extend_path 'first_arg' 'second_arg' 'third_arg'
@@ -168,7 +169,7 @@ function setup
 
 # ------------------------------------------------------------------------------
 
-@test 'extend_path with string as first argument fails, prints an error, does not change PATH' {
+@test '#04 - extend_path with string as first argument fails, prints an error, does not change PATH' {
 
   path_before="${PATH}"
   run extend_path 'first_arg' 'second_arg'
@@ -182,7 +183,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
 }
 
-@test 'extend_path with string as second argument fails, prints an error, does not change PATH' {
+@test '#05 - extend_path with string as second argument fails, prints an error, does not change PATH' {
 
   req_tools2=()
 
@@ -198,7 +199,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
 }
 
-@test 'extend_path with integer as first argument fails, prints an error, does not change PATH' {
+@test '#06 - extend_path with integer as first argument fails, prints an error, does not change PATH' {
 
   path_before="${PATH}"
   run extend_path 42 'second_arg'
@@ -212,7 +213,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
 }
 
-@test 'extend_path with integer as second argument fails, prints an error, does not change PATH' {
+@test '#07 - extend_path with integer as second argument fails, prints an error, does not change PATH' {
 
   req_tools=()
 
@@ -228,7 +229,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
 }
 
-@test 'extend_path with float as first argument fails, prints an error, does not change PATH' {
+@test '#08 - extend_path with float as first argument fails, prints an error, does not change PATH' {
 
   path_before="${PATH}"
   run extend_path 42.23 'second_arg'
@@ -242,7 +243,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
 }
 
-@test 'extend_path with float as second argument fails, prints an error, does not change PATH' {
+@test '#09 - extend_path with float as second argument fails, prints an error, does not change PATH' {
 
   req_tools=()
 
@@ -260,7 +261,7 @@ function setup
 
 # ------------------------------------------------------------------------------
 
-@test 'extend_path with two empty array arguments succeeds, does not change PATH' {
+@test '#10 - extend_path with two empty array arguments succeeds, does not change PATH' {
 
   req_tools=()
   ext_paths=()
@@ -277,7 +278,7 @@ function setup
   [ "${output}" = "${first_line}" ]
 }
 
-@test 'extend_path with two empty array arguments (alternate notation) succeeds, does not change PATH' {
+@test '#11 - extend_path with two empty array arguments (alternate notation) succeeds, does not change PATH' {
 
   declare -a req_tools=()
   declare -a ext_paths=()
@@ -294,7 +295,7 @@ function setup
   [ "${output}" = "${first_line}" ]
 }
 
-@test 'extend_path with empty <req_tools> and any path in <ext_paths> succeeds, does not change PATH' {
+@test '#12 - extend_path with empty <req_tools> and any path in <ext_paths> succeeds, does not change PATH' {
 
   req_tools=()
   ext_paths=('this_path_is_not_used')
@@ -311,7 +312,7 @@ function setup
   [ "${output}" = "${first_line}" ]
 }
 
-@test 'extend_path with nonexistent tool and empty <ext_paths> fails, does not change PATH' {
+@test '#13 - extend_path with nonexistent tool and empty <ext_paths> fails, does not change PATH' {
 
   req_tools=('this_tool_does_not_exist')
   ext_paths=()
@@ -330,7 +331,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
-@test 'extend_path with nonexistent tool and path already in PATH fails, does not change PATH' {
+@test '#14 - extend_path with nonexistent tool and path already in PATH prints path message, fails, does not change PATH' {
 
   req_tools=('this_tool_does_not_exist')
   ext_paths=('/usr/bin')
@@ -349,7 +350,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
-@test 'extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, does not change PATH' {
+@test '#16 - extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, does not change PATH' {
 
   req_tools=('ls')
   ext_paths=()
@@ -368,7 +369,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
-@test 'extend_path with tool in (unchanged) PATH and any path succeeds, does not change PATH' {
+@test '#18 - extend_path with tool in (unchanged) PATH and any path succeeds, does not change PATH' {
 
   req_tools=('ls')
   ext_paths=('this_path_is_not_used')

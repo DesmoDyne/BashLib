@@ -70,8 +70,10 @@ set -o nounset
 # Globals:
 #   possibly extends PATH by paths in <ext_paths>
 # Arguments:
-#   req_tools - quoted string with list of tool names required in PATH
-#   ext_paths - quoted string with list of paths to add to PATH
+#   req_tools - string array with tool names required in PATH
+#   ext_paths - string array with paths to add to PATH: paths already in PATH
+#               won't be re-added and a message will be displayed; paths that
+#               don't exist or are not folders will be ignored with a warning
 # Returns:
 #   0 if all tools were found in (possibly extended) PATH; 1 otherwise
 #
