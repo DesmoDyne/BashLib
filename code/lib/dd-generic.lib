@@ -130,6 +130,12 @@ function extend_path
     local -n req_tools_=${1}
     local -n ext_paths_=${2}
 
+    # test if req tools array is empty
+    if [ -z "${req_tools_[*]}" ]
+    then
+        return 0
+    fi
+
     # add a dummy element to beginning of array for first loop
     # https://unix.stackexchange.com/a/395103
     ext_paths_=('dummy' "${ext_paths_[@]}")
