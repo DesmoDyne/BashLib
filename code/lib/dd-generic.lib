@@ -165,7 +165,9 @@ function extend_path
                     continue
                 fi
                 echo "  append ${ext_path} to PATH and retry:"
+                # echo "  old path: ${PATH}"
                 PATH="${PATH}:${ext_path}"
+                # echo "  new path: ${PATH}"
             fi
         fi
 
@@ -401,3 +403,9 @@ function validate_config_settings
         fi
     fi
 }
+
+
+# undo bash option changes so this library can be sourced
+# from a live shell with changing the shell's configuration
+# TODO: test if this works as expected
+set +o nounset

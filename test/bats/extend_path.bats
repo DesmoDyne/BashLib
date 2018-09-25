@@ -98,6 +98,20 @@ function setup
     # shellcheck disable=SC2034
     err_msg_3='ERROR: <ext_paths> argument is not an array'
 
+    # https://github.com/koalaman/shellcheck/wiki/SC2115
+
+    # test folder 1
+    # shellcheck disable=SC2034
+    folder_1="${BATS_TMPDIR:?}/folder_1"
+
+    # test folder 2
+    # shellcheck disable=SC2034
+    folder_2="${BATS_TMPDIR:?}/folder_2"
+
+    # test folder 3
+    # shellcheck disable=SC2034
+    folder_3="${BATS_TMPDIR:?}/folder_3"
+
     # NOTE: this only tests if library can be sourced;
     # functions are only defined in "$(...)" subshell,
     # so a second source for use in here is required
@@ -111,6 +125,25 @@ function setup
 
     # shellcheck disable=SC1090
     source "${path_to_library}"
+
+    # create test environment
+    if ! output="$(mkdir "${folder_1}" "${folder_2}" "${folder_3}" 2>&1)"
+    then
+        echo "${output}"
+        return 1
+    fi
+
+    return 0
+}
+
+function teardown
+{
+    # destroy test environment
+    if ! output="$(rm -r "${folder_1}" "${folder_2}" "${folder_3}" 2>&1)"
+    then
+        echo "${output}"
+        return 1
+    fi
 
     return 0
 }
@@ -470,6 +503,46 @@ function setup
 
   exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}"$'\n'
   exp_out+="${exp_line_4}"$'\n'"${exp_line_5}"$'\n'"${exp_line_6}"
+
+  # shellcheck disable=SC2154
+  [ "${output}" = "${exp_out}" ]
+}
+
+# ------------------------------------------------------------------------------
+
+@test '#21 - extend_path with nonexistent tool and existing path fails, changes PATH' {
+
+  req_tools=('this_tool_does_not_exist')
+  # defined in setup function
+  ext_paths=("${folder_1}")
+
+  # TODO: PATH is unchanged, most likely because bats runs test in a subshell:
+  # https://github.com/bats-core/bats-core/pull/146/ ...
+  #  ... commits/c5e2404dde9b15b73c510d20bc657800bdec9c0b
+
+  path_before="${PATH}"
+  run extend_path req_tools ext_paths
+  path_after="${PATH}"
+
+  # NOTE: for this to show up in test output, run bats with --tap:
+  # https://github.com/bats-core/bats-core#printing-to-the-terminal
+  # echo "# path_before : ${path_before}" >&3
+  # echo "# path_after  : ${path_after}"  >&3
+
+  echo "output:"$'\n'"${output}"
+
+  exp_line_2='  this_tool_does_not_exist: FAIL'
+  exp_line_3="  append ${folder_1} to PATH and retry:"
+  exp_line_4='  this_tool_does_not_exist: FAIL'
+
+  # TODO: this test should fail, but it doesn't
+  [ "${path_before}" = "${path_after}" ]
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 1 ]
+
+  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
+  exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"
 
   # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]

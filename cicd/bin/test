@@ -44,6 +44,11 @@ then
     exit 1
 fi
 
+# NOTE: printing from a test function to >&3
+# requires running bats with --tap, e.g.
+#   bats --tap "${path_to_bats_folder}"
+# https://github.com/bats-core/bats-core#printing-to-the-terminal
+
 # bats displays its own output
 bats "${path_to_bats_folder}"
 exit_code="$?"
