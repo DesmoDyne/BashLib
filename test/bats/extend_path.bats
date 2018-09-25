@@ -331,7 +331,27 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
-@test '#14 - extend_path with nonexistent tool and path already in PATH prints path message, fails, does not change PATH' {
+@test '#14 - extend_path with nonexistent tool and nonexistent path prints folder message, fails, does not change PATH' {
+
+  req_tools=('this_tool_does_not_exist')
+  ext_paths=('this_path_does_not_exist')
+
+  path_before="${PATH}"
+  run extend_path req_tools ext_paths
+  path_after="${PATH}"
+
+  exp_line_2='  this_tool_does_not_exist: FAIL'
+  exp_line_3='  folder this_path_does_not_exist does not exist; skip'
+
+  [ "${path_before}" = "${path_after}" ]
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 1 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
+}
+
+@test '#15 - extend_path with nonexistent tool and path already in PATH prints path message, fails, does not change PATH' {
 
   req_tools=('this_tool_does_not_exist')
   ext_paths=('/usr/bin')
@@ -341,19 +361,39 @@ function setup
   path_after="${PATH}"
 
   exp_line_2='  this_tool_does_not_exist: FAIL'
+  exp_line_3='  path /usr/bin is already in PATH; skip'
 
   [ "${path_before}" = "${path_after}" ]
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
   # shellcheck disable=SC2154
-  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
 @test '#16 - extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, does not change PATH' {
 
   req_tools=('ls')
   ext_paths=()
+
+  path_before="${PATH}"
+  run extend_path req_tools ext_paths
+  path_after="${PATH}"
+
+  exp_line_2='  ls: OK'
+
+  [ "${path_before}" = "${path_after}" ]
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 0 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
+}
+
+@test '#17 - extend_path with tool in (unchanged) PATH and path already in PATH succeeds, does not change PATH' {
+
+  req_tools=('ls')
+  ext_paths=('/usr/bin')
 
   path_before="${PATH}"
   run extend_path req_tools ext_paths
@@ -386,4 +426,51 @@ function setup
   [ "${status}" -eq 0 ]
   # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
+}
+
+@test '#19 - extend_path with two tools in (unchanged) PATH and any path succeeds, does not change PATH' {
+
+  req_tools=('cat' 'ls')
+  ext_paths=('this_path_is_not_used')
+
+  path_before="${PATH}"
+  run extend_path req_tools ext_paths
+  path_after="${PATH}"
+
+  exp_line_2='  cat: OK'
+  exp_line_3='  ls: OK'
+
+  [ "${path_before}" = "${path_after}" ]
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 0 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
+}
+
+@test '#20 - extend_path with five tools in (unchanged) PATH and any path succeeds, does not change PATH' {
+
+  req_tools=('cat' 'chmod' 'cp' 'date' 'ls')
+  ext_paths=('this_path_is_not_used')
+
+  path_before="${PATH}"
+  run extend_path req_tools ext_paths
+  path_after="${PATH}"
+
+  exp_line_2='  cat: OK'
+  exp_line_3='  chmod: OK'
+  exp_line_4='  cp: OK'
+  exp_line_5='  date: OK'
+  exp_line_6='  ls: OK'
+
+  [ "${path_before}" = "${path_after}" ]
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 0 ]
+
+  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}"$'\n'
+  exp_out+="${exp_line_4}"$'\n'"${exp_line_5}"$'\n'"${exp_line_6}"
+
+  # shellcheck disable=SC2154
+  [ "${output}" = "${exp_out}" ]
 }
