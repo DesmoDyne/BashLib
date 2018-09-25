@@ -10,9 +10,9 @@
 
 
 # NOTE: this library is not meant to be executed;
-# use defined functions in own scripts using e.g.
+# instead use functions in own scripts with e.g.
 #   source <path to this library>/dd-generic.lib
-#
+
 # no shell she-bang, but a shellcheck shell directive:
 # https://github.com/koalaman/shellcheck/issues/581
 
@@ -34,6 +34,8 @@
 # TODO: add code location indicator to log messages ?
 # TODO: add unit-tests
 # TODO: review using 'local' for variable declaration
+# TODO: (globally) redirect error messages to stderr using >&2
+# TODO: align / indent output / review log output in general
 
 
 # treat unset variables and parameters as error for parameter expansion:
@@ -66,7 +68,7 @@ set -o nounset
 # being used depend on the order of paths in PATH; this is a source of error.
 #
 # Globals:
-#   possibly extends PATH
+#   possibly extends PATH by paths in <ext_paths>
 # Arguments:
 #   req_tools - quoted string with list of tool names required in PATH
 #   ext_paths - quoted string with list of paths to add to PATH
@@ -74,9 +76,10 @@ set -o nounset
 #   0 if all tools were found in (possibly extended) PATH; 1 otherwise
 #
 # Sample code:
-# TODO: this
+#   req_tools=('my_helper_script' 'vagrant' 'javac')
+#   ext_paths=('/usr/local/bin' '<path to my scripts>' '/opt/vagrant/bin')
+#   extend_path req_tools ext_paths
 #
-# TODO: align / indent output
 # TODO: does changing PATH have any side effects to calling script ?
 
 function extend_path
@@ -85,31 +88,64 @@ function extend_path
 
     if [ "$#" -ne 2 ]
     then
-        echo "ERROR: wrong number of arguments"
-        echo 'usage: extend_path "<required tools>" "<paths>"'
+        msg='ERROR: wrong number of arguments'$'\n'
+        msg+='please see function code for usage and sample code'
+        echo "${msg}" >&2
         return 1
     fi
 
-    # https://stackoverflow.com/a/4017175
-    declare -a req_tools=("${!1}")
-    declare -a ext_paths=("${!2}")
+    # test if first argument is an array:
+    # https://stackoverflow.com/a/27254437
+    # https://stackoverflow.com/a/26287272
+    # http://fvue.nl/wiki/Bash:_Detect_if_variable_is_an_array
+    if ! [[ "$(declare -p "${1}" 2> /dev/null)" =~ "declare -a" ]]
+    then
+        msg='ERROR: <req_tools> argument is not an array'$'\n'
+        msg+='please see function code for usage and sample code'
+        echo "${msg}" >&2
+        return 1
+    fi
+
+    if ! [[ "$(declare -p "${2}" 2> /dev/null)" =~ "declare -a" ]]
+    then
+        msg='ERROR: <ext_paths> argument is not an array'$'\n'
+        msg+='please see function code for usage and sample code'
+        echo "${msg}" >&2
+        return 1
+    fi
+
+    # pass arrays as function arguments:
+    # https://stackoverflow.com/a/29379084
+    #
+    # there is plenty confusion around arrays
+    # and function arguments in bash in general:
+    # https://stackoverflow.com/q/16461656
+    #
+    # NOTE: underscore appended to variable name
+    # to reduce the chance of bash warning
+    #   local: warning: req_tools: circular name reference
+    # that occurs when client code also uses
+    # 'req_tools' as name for the variable
+    # passed as argument to this function
+    local -n req_tools_=${1}
+    local -n ext_paths_=${2}
 
     # add a dummy element to beginning of array for first loop
     # https://unix.stackexchange.com/a/395103
-    ext_paths=('dummy' "${ext_paths[@]}")
+    ext_paths_=('dummy' "${ext_paths_[@]}")
 
     exit_code=0
 
     # https://stackoverflow.com/a/8880633
-    for ext_path in "${ext_paths[@]}"
+    for ext_path in "${ext_paths_[@]}"
     do
-        if [ "${ext_path}" != 'dummmy' ]
+        if [ "${ext_path}" != 'dummy' ]
         then
             echo "append ${ext_path} to PATH and retry:"
             PATH="${PATH}:${ext_path}"
         fi
 
-        for req_tool in "${req_tools[@]}"
+        for req_tool in "${req_tools_[@]}"
         do
             # https://stackoverflow.com/a/677212
             # https://github.com/koalaman/shellcheck/wiki/SC2230

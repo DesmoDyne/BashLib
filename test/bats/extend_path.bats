@@ -62,6 +62,9 @@
 
 # TODO: post to SO, ask for canonical way to test functions in library
 # TODO: create issue at github.com / bats-core: setup / teardown sample code
+# TODO: if two tests have the same text and the second fails,
+#       both are reported as failures, even though the first succeeds
+# TODO: shellcheck parsing is severely messed up in here
 
 
 function setup
@@ -76,6 +79,24 @@ function setup
     # bats copying test files to temp folder and relative folder don't work:
     # https://github.com/bats-core/bats-core#special-variables
     path_to_library="${BATS_TEST_DIRNAME}/${path_to_proj_root}/${path_to_lut}"
+
+    # first line: function under test always prints this
+    first_line='verify required executables are available in PATH:'
+
+    # last line: printed after error message
+    last_line='please see function code for usage and sample code'
+
+    # error message 1
+    # shellcheck disable=SC2034
+    err_msg_1='ERROR: wrong number of arguments'
+
+    # error message 2
+    # shellcheck disable=SC2034
+    err_msg_2='ERROR: <req_tools> argument is not an array'
+
+    # error message 3
+    # shellcheck disable=SC2034
+    err_msg_3='ERROR: <ext_paths> argument is not an array'
 
     # NOTE: this only tests if library can be sourced;
     # functions are only defined in "$(...)" subshell,
@@ -99,10 +120,134 @@ function setup
 
   run extend_path
 
+  # echo "expected:"
+  # echo "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}"
+
+  # echo "actual:"
+  # echo "${output}"
+
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
   # shellcheck disable=SC2154
-  [ "${lines[0]}" = 'verify required executables are available in PATH:' ]
-  [ "${lines[1]}" = 'ERROR: wrong number of arguments' ]
-  [ "${lines[2]}" = 'usage: extend_path "<required tools>" "<paths>"' ]
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
+}
+
+@test "invoking extend_path with one argument fails and prints an error" {
+
+  run extend_path 'first_arg'
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 1 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
+}
+
+@test "invoking extend_path with three arguments fails and prints an error" {
+
+  run extend_path 'first_arg' 'second_arg' 'third_arg'
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 1 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
+}
+
+@test "invoking extend_path with string as first argument fails and prints an error" {
+
+  run extend_path 'first_arg' 'second_arg'
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 1 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
+}
+
+@test "invoking extend_path with string as second argument fails and prints an error" {
+
+  declare -a req_tools2=()
+
+  run extend_path req_tools2 'second_arg'
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 1 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
+}
+
+@test "invoking extend_path with integer as first argument fails and prints an error" {
+
+  run extend_path 42 'second_arg'
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 1 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
+}
+
+@test "invoking extend_path with integer as second argument fails and prints an error" {
+
+  declare -a req_tools=()
+
+  run extend_path req_tools 42
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 1 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
+}
+
+@test "invoking extend_path with float as first argument fails and prints an error" {
+
+  run extend_path 42.23 'second_arg'
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 1 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
+}
+
+@test "invoking extend_path with float as second argument fails and prints an error" {
+
+  declare -a req_tools=()
+
+  run extend_path req_tools 42.23
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 1 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
+}
+
+@test "invoking extend_path with two empty array arguments succeeds and does nothing" {
+
+  declare -a req_tools=()
+  declare -a ext_paths=()
+
+  path_before="${PATH}"
+  run extend_path req_tools ext_paths
+  path_after="${PATH}"
+
+  [ "${path_before}" = "${path_after}" ]
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 0 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}" ]
+}
+
+@test "invoking extend_path with two empty array arguments (alternate notation) succeeds and does nothing" {
+
+  req_tools=()
+  ext_paths=()
+
+  path_before="${PATH}"
+  run extend_path req_tools ext_paths
+  path_after="${PATH}"
+
+  [ "${path_before}" = "${path_after}" ]
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 0 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}" ]
 }
