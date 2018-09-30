@@ -72,6 +72,9 @@
 #     testing changes by the FUT to global variables (such as e.g. PATH) as
 #     those changes only become effective in the subshell and not in the test
 #
+# as a consequence, pairs of two tests are used in here, one testing for the
+# changing of PATH, one testing for regular success / failure and output
+#
 # from https://github.com/bats-core/bats-core#run-test-other-commands:
 #   The $status variable contains the status code of the command, and the
 #   $output variable contains the combined contents of the command's standard
@@ -137,9 +140,17 @@ function setup
     # shellcheck disable=SC2034
     folder_3="${BATS_TMPDIR:?}/folder_3"
 
-    # test tool 1
+    # test tool 1 in folder 1
     # shellcheck disable=SC2034
-    tool_1='tool_1'
+    tool_11='tool_11'
+
+    # test tool 2 in folder 1
+    # shellcheck disable=SC2034
+    tool_12='tool_12'
+
+    # test tool 1 in folder 2
+    # shellcheck disable=SC2034
+    tool_21='tool_21'
 
     # NOTE: this only tests if library can be sourced;
     # functions are only defined in "$(...)" subshell,
@@ -163,8 +174,14 @@ function setup
         return 1
     fi
 
-    if ! output="$(touch     "${folder_1}/${tool_1}" && \
-                   chmod a+x "${folder_1}/${tool_1}" 2>&1)"
+    # TODO: use shorter code
+
+    if ! output="$(touch     "${folder_1}/${tool_11}" && \
+                   chmod a+x "${folder_1}/${tool_11}" && \
+                   touch     "${folder_1}/${tool_12}" && \
+                   chmod a+x "${folder_1}/${tool_12}" && \
+                   touch     "${folder_2}/${tool_21}" && \
+                   chmod a+x "${folder_2}/${tool_21}" 2>&1)"
     then
         echo "${output}"
         return 1
@@ -607,7 +624,7 @@ function teardown
 
 @test '#30 - extend_path with existing tool and existing path succeeds, changes PATH' {
 
-  req_tools=("${tool_1}")
+  req_tools=("${tool_11}")
   ext_paths=("${folder_1}")
 
   path_before="${PATH}"
@@ -629,14 +646,14 @@ function teardown
 
 @test '#31 - extend_path with existing tool and existing path succeeds, prints expected output' {
 
-  req_tools=("${tool_1}")
+  req_tools=("${tool_11}")
   ext_paths=("${folder_1}")
 
   run extend_path req_tools ext_paths
 
-  exp_line_2="  ${tool_1}: FAIL"
+  exp_line_2="  ${tool_11}: FAIL"
   exp_line_3="  append ${folder_1} to PATH and retry:"
-  exp_line_4="  ${tool_1}: OK"
+  exp_line_4="  ${tool_11}: OK"
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
@@ -644,8 +661,86 @@ function teardown
   exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
   exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"
 
-  # echo 'expected output:'$'\n'"${exp_out}"
-  # echo 'actual output:'$'\n'"${output}"
+  # NOTE: this is only displayed if test fails
+  echo 'expected output:'$'\n'"${exp_out}"
+  echo 'actual output:'$'\n'"${output}"
+
+  # shellcheck disable=SC2154
+  [ "${output}" = "${exp_out}" ]
+}
+
+@test '#32 - extend_path with two existing tools and existing path succeeds, changes PATH' {
+
+  req_tools=("${tool_11}" "${tool_12}")
+  ext_paths=("${folder_1}")
+
+  path_before="${PATH}"
+  extend_path req_tools ext_paths
+  path_after="${PATH}"
+
+  [ "${path_after}" = "${path_before}:${folder_1}" ]
+}
+
+@test '#33 - extend_path with two existing tools and existing path succeeds, prints expected output' {
+
+  req_tools=("${tool_11}" "${tool_12}")
+  ext_paths=("${folder_1}")
+
+  run extend_path req_tools ext_paths
+
+  # TODO: using read in here fails
+  exp_line_2="  ${tool_11}: FAIL"
+  exp_line_3="  ${tool_12}: FAIL"
+  exp_line_4="  append ${folder_1} to PATH and retry:"
+  exp_line_5="  ${tool_11}: OK"
+  exp_line_6="  ${tool_12}: OK"
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 0 ]
+
+  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
+  exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"$'\n'
+  exp_out+="${exp_line_5}"$'\n'"${exp_line_6}"
+
+  # shellcheck disable=SC2154
+  [ "${output}" = "${exp_out}" ]
+}
+
+@test '#34 - extend_path with two existing tools in two existing path succeeds, changes PATH' {
+
+  req_tools=("${tool_11}" "${tool_21}")
+  ext_paths=("${folder_1}" "${folder_2}")
+
+  path_before="${PATH}"
+  extend_path req_tools ext_paths
+  path_after="${PATH}"
+
+  [ "${path_after}" = "${path_before}:${folder_1}:${folder_2}" ]
+}
+
+@test '#35 - extend_path with two existing tools in two existing path succeeds, prints expected output' {
+
+  req_tools=("${tool_11}" "${tool_21}")
+  ext_paths=("${folder_1}" "${folder_2}")
+
+  run extend_path req_tools ext_paths
+
+  # TODO: using read in here fails
+  exp_line_2="  ${tool_11}: FAIL"
+  exp_line_3="  ${tool_21}: FAIL"
+  exp_line_4="  append ${folder_1} to PATH and retry:"
+  exp_line_5="  ${tool_11}: OK"
+  exp_line_6="  ${tool_21}: FAIL"
+  exp_line_7="  append ${folder_2} to PATH and retry:"
+  exp_line_8="  ${tool_21}: OK"
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 0 ]
+
+  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
+  exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"$'\n'
+  exp_out+="${exp_line_5}"$'\n'"${exp_line_6}"$'\n'
+  exp_out+="${exp_line_7}"$'\n'"${exp_line_8}"
 
   # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
