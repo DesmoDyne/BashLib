@@ -31,14 +31,6 @@
 # must be on a new line.
 # TODO: create issue at https://github.com/bats-core/bats-core/issues
 
-# NOTE: status, output and lines variables are defined by bats; from this
-# test's perspective, they just pop into existence, so shellcheck reports
-# them as warnings; from bats doc ref'd above:
-#   The $status variable contains the status code of the command, and the
-#   $output variable contains the combined contents of the command's standard
-#   output and standard error streams. A third special variable, the $lines
-#   array, is available for easily accessing individual lines of output.
-
 # NOTE: all bats files are copied to a temporary folder and are run from there
 # (for "isolation"); therefore, relative paths often don't work as expected;
 # in these cases, bats typically fails with error code 127 and messages like
@@ -57,7 +49,39 @@
 #
 #   1 test, 1 failure
 # and is less than helpful in diagnosing this issue; as a means to debug,
-# display error message using e.g. echo "output: ${output}" after run call
+# display error message using e.g. echo "output: ${output}" after the test
+
+# NOTE: it is CRUCIAL to be aware of how 'run' works in bats:
+#  1. if the function under test (FUT) is called WITHOUT run and fails
+#     (i.e. returns 1), a failure is reported immediately (e.g. '`extend_path'
+#     failed' in bats output) and the test is aborted, i.e. no further code
+#     in the test function after the call to the FUT ever executed; bats
+#     variables such as status, output and lines are not available; however,
+#     the function output to stderr or stdout is displayed in bats output;
+#     TODO: verify output to stdout is indeed printed
+#     this can be especially confusing when trying to `echo 'test' >&3` after
+#     the call to the FUT as that output never shows up in the bats output
+#  2. if the function under test is called WITH run, the function is executed
+#     in a subshell and status, output and lines variables are set by bats:
+#     https://github.com/bats-core/bats-core/pull/146/ ...
+#      ... commits/c5e2404dde9b15b73c510d20bc657800bdec9c0b
+#     no matter if the FUT fails or succeeds, test execution carries on until
+#     for example a test such as [ "${status}" -eq 0 ] fails, which is then
+#     displayed in bats output as a failed test;
+#     due to the FUT being called in a subshell, 'run' can not be used when
+#     testing changes by the FUT to global variables (such as e.g. PATH) as
+#     those changes only become effective in the subshell and not in the test
+#
+# from https://github.com/bats-core/bats-core#run-test-other-commands:
+#   The $status variable contains the status code of the command, and the
+#   $output variable contains the combined contents of the command's standard
+#   output and standard error streams. A third special variable, the $lines
+#   array, is available for easily accessing individual lines of output.
+# on a sidenote: from a test's perspective, these variables just pop
+# into existence, so shellcheck reports them as SC2154 warnings:
+#   https://github.com/koalaman/shellcheck/wiki/SC2154)
+#
+# TODO: add the above to bats-core doc: https://github.com/bats-core/bats-core
 
 
 # TODO: create issue at github.com / bats-core: setup / teardown sample code ?
@@ -148,17 +172,15 @@ function teardown
     return 0
 }
 
+
+# NOTE: testing if PATH was changed is not possible when using 'run', see above
+
 # ------------------------------------------------------------------------------
+# test wrong number of arguments
 
-# https://github.com/bats-core/bats-core#run-test-other-commands
+@test '#01 - extend_path without arguments fails, prints an error' {
 
-@test '#01 - extend_path without arguments fails, prints an error, does not change PATH' {
-
-  path_before="${PATH}"
   run extend_path
-  path_after="${PATH}"
-
-  [ "${path_before}" = "${path_after}" ]
 
   # echo "expected:"
   # echo "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}"
@@ -172,13 +194,9 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
 }
 
-@test '#02 - extend_path with one argument fails, prints an error, does not change PATH' {
+@test '#02 - extend_path with one argument fails, prints an error' {
 
-  path_before="${PATH}"
   run extend_path 'first_arg'
-  path_after="${PATH}"
-
-  [ "${path_before}" = "${path_after}" ]
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
@@ -186,13 +204,9 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
 }
 
-@test '#03 - extend_path with three arguments fails, prints an error, does not change PATH' {
+@test '#03 - extend_path with three arguments fails, prints an error' {
 
-  path_before="${PATH}"
   run extend_path 'first_arg' 'second_arg' 'third_arg'
-  path_after="${PATH}"
-
-  [ "${path_before}" = "${path_after}" ]
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
@@ -201,14 +215,11 @@ function teardown
 }
 
 # ------------------------------------------------------------------------------
+# test wrong type of first argument
 
-@test '#04 - extend_path with string as first argument fails, prints an error, does not change PATH' {
+@test '#04 - extend_path with string as first argument fails, prints an error' {
 
-  path_before="${PATH}"
   run extend_path 'first_arg' 'second_arg'
-  path_after="${PATH}"
-
-  [ "${path_before}" = "${path_after}" ]
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
@@ -216,29 +227,9 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
 }
 
-@test '#05 - extend_path with string as second argument fails, prints an error, does not change PATH' {
+@test '#05 - extend_path with integer as first argument fails, prints an error' {
 
-  req_tools2=()
-
-  path_before="${PATH}"
-  run extend_path req_tools2 'second_arg'
-  path_after="${PATH}"
-
-  [ "${path_before}" = "${path_after}" ]
-
-  # shellcheck disable=SC2154
-  [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
-}
-
-@test '#06 - extend_path with integer as first argument fails, prints an error, does not change PATH' {
-
-  path_before="${PATH}"
   run extend_path 42 'second_arg'
-  path_after="${PATH}"
-
-  [ "${path_before}" = "${path_after}" ]
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
@@ -246,15 +237,24 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
 }
 
-@test '#07 - extend_path with integer as second argument fails, prints an error, does not change PATH' {
+@test '#06 - extend_path with float as first argument fails, prints an error' {
+
+  run extend_path 42.23 'second_arg'
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 1 ]
+  # shellcheck disable=SC2154
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
+}
+
+# ------------------------------------------------------------------------------
+# test wrong type of second argument
+
+@test '#07 - extend_path with string as second argument fails, prints an error' {
 
   req_tools=()
 
-  path_before="${PATH}"
-  run extend_path req_tools 42
-  path_after="${PATH}"
-
-  [ "${path_before}" = "${path_after}" ]
+  run extend_path req_tools 'second_arg'
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
@@ -262,29 +262,23 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
 }
 
-@test '#08 - extend_path with float as first argument fails, prints an error, does not change PATH' {
+@test '#08 - extend_path with integer as second argument fails, prints an error' {
 
-  path_before="${PATH}"
-  run extend_path 42.23 'second_arg'
-  path_after="${PATH}"
+  req_tools=()
 
-  [ "${path_before}" = "${path_after}" ]
+  run extend_path req_tools 42
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
   # shellcheck disable=SC2154
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
 }
 
-@test '#09 - extend_path with float as second argument fails, prints an error, does not change PATH' {
+@test '#09 - extend_path with float as second argument fails, prints an error' {
 
   req_tools=()
 
-  path_before="${PATH}"
   run extend_path req_tools 42.23
-  path_after="${PATH}"
-
-  [ "${path_before}" = "${path_after}" ]
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
@@ -293,6 +287,9 @@ function teardown
 }
 
 # ------------------------------------------------------------------------------
+# test actual actual function behavior
+
+# NOTE: not using 'run' so change to PATH can be tested, see above
 
 @test '#10 - extend_path with two empty array arguments succeeds, does not change PATH' {
 
@@ -300,10 +297,23 @@ function teardown
   ext_paths=()
 
   path_before="${PATH}"
-  run extend_path req_tools ext_paths
+  extend_path req_tools ext_paths
+
+  # NOTE: success of the above line is tested implicitly here: if it had failed,
+  # this test function would be aborted, no further test code would be executed
+  # and the path of execution would never reach any of the lines below
+
   path_after="${PATH}"
 
   [ "${path_before}" = "${path_after}" ]
+}
+
+@test '#11 - extend_path with two empty array arguments succeeds, prints expected output' {
+
+  req_tools=()
+  ext_paths=()
+
+  run extend_path req_tools ext_paths
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
@@ -311,16 +321,24 @@ function teardown
   [ "${output}" = "${first_line}" ]
 }
 
-@test '#11 - extend_path with two empty array arguments (alternate notation) succeeds, does not change PATH' {
+@test '#12 - extend_path with two empty array arguments (alternate notation) succeeds, does not change PATH' {
 
   declare -a req_tools=()
   declare -a ext_paths=()
 
   path_before="${PATH}"
-  run extend_path req_tools ext_paths
+  extend_path req_tools ext_paths
   path_after="${PATH}"
 
   [ "${path_before}" = "${path_after}" ]
+}
+
+@test '#13 - extend_path with two empty array arguments (alternate notation) succeeds, prints expected output' {
+
+  declare -a req_tools=()
+  declare -a ext_paths=()
+
+  run extend_path req_tools ext_paths
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
@@ -328,16 +346,24 @@ function teardown
   [ "${output}" = "${first_line}" ]
 }
 
-@test '#12 - extend_path with empty <req_tools> and any path in <ext_paths> succeeds, does not change PATH' {
+@test '#14 - extend_path with empty <req_tools> and any path in <ext_paths> succeeds, does not change PATH' {
 
   req_tools=()
   ext_paths=('this_path_is_not_used')
 
   path_before="${PATH}"
-  run extend_path req_tools ext_paths
+  extend_path req_tools ext_paths
   path_after="${PATH}"
 
   [ "${path_before}" = "${path_after}" ]
+}
+
+@test '#15 - extend_path with empty <req_tools> and any path in <ext_paths> succeeds, prints expected output' {
+
+  req_tools=()
+  ext_paths=('this_path_is_not_used')
+
+  run extend_path req_tools ext_paths
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
@@ -345,18 +371,16 @@ function teardown
   [ "${output}" = "${first_line}" ]
 }
 
-@test '#13 - extend_path with nonexistent tool and empty <ext_paths> fails, does not change PATH' {
+# NOTE: with bats, it is not possible to test if PATH was changed if FUT fails
+
+@test '#16 - extend_path with nonexistent tool and empty <ext_paths> fails' {
 
   req_tools=('this_tool_does_not_exist')
   ext_paths=()
 
-  path_before="${PATH}"
   run extend_path req_tools ext_paths
-  path_after="${PATH}"
 
   exp_line_2='  this_tool_does_not_exist: FAIL'
-
-  [ "${path_before}" = "${path_after}" ]
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
@@ -364,19 +388,15 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
-@test '#14 - extend_path with nonexistent tool and nonexistent path prints folder message, fails, does not change PATH' {
+@test '#17 - extend_path with nonexistent tool and nonexistent path prints folder warning, fails' {
 
   req_tools=('this_tool_does_not_exist')
   ext_paths=('this_path_does_not_exist')
 
-  path_before="${PATH}"
   run extend_path req_tools ext_paths
-  path_after="${PATH}"
 
   exp_line_2='  this_tool_does_not_exist: FAIL'
-  exp_line_3='  folder this_path_does_not_exist does not exist; skip'
-
-  [ "${path_before}" = "${path_after}" ]
+  exp_line_3='  WARNING: folder this_path_does_not_exist does not exist; skip'
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
@@ -384,19 +404,17 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
-@test '#15 - extend_path with nonexistent tool and path already in PATH prints path message, fails, does not change PATH' {
+@test '#18 - extend_path with nonexistent tool and path already in PATH prints path warning, fails' {
+
+  # TODO: this assumes /usr/bin is already in PATH (safe enough for now)
 
   req_tools=('this_tool_does_not_exist')
   ext_paths=('/usr/bin')
 
-  path_before="${PATH}"
   run extend_path req_tools ext_paths
-  path_after="${PATH}"
 
   exp_line_2='  this_tool_does_not_exist: FAIL'
-  exp_line_3='  path /usr/bin is already in PATH; skip'
-
-  [ "${path_before}" = "${path_after}" ]
+  exp_line_3='  WARNING: path /usr/bin is already in PATH; skip'
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
@@ -404,18 +422,28 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
-@test '#16 - extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, does not change PATH' {
+@test '#19 - extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, does not change PATH' {
+
+  # TODO: this assumes ls is in PATH (here and below, safe enough for now)
 
   req_tools=('ls')
   ext_paths=()
 
   path_before="${PATH}"
-  run extend_path req_tools ext_paths
+  extend_path req_tools ext_paths
   path_after="${PATH}"
 
-  exp_line_2='  ls: OK'
-
   [ "${path_before}" = "${path_after}" ]
+}
+
+@test '#20 - extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, prints expected output' {
+
+  req_tools=('ls')
+  ext_paths=()
+
+  run extend_path req_tools ext_paths
+
+  exp_line_2='  ls: OK'
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
@@ -423,18 +451,26 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
-@test '#17 - extend_path with tool in (unchanged) PATH and path already in PATH succeeds, does not change PATH' {
+@test '#21 - extend_path with tool in (unchanged) PATH and path already in PATH succeeds, does not change PATH' {
 
   req_tools=('ls')
   ext_paths=('/usr/bin')
 
   path_before="${PATH}"
-  run extend_path req_tools ext_paths
+  extend_path req_tools ext_paths
   path_after="${PATH}"
 
-  exp_line_2='  ls: OK'
-
   [ "${path_before}" = "${path_after}" ]
+}
+
+@test '#22 - extend_path with tool in (unchanged) PATH and path already in PATH succeeds, prints expected output' {
+
+  req_tools=('ls')
+  ext_paths=('/usr/bin')
+
+  run extend_path req_tools ext_paths
+
+  exp_line_2='  ls: OK'
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
@@ -442,18 +478,26 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
-@test '#18 - extend_path with tool in (unchanged) PATH and any path succeeds, does not change PATH' {
+@test '#23 - extend_path with tool in (unchanged) PATH and any path succeeds, does not change PATH' {
 
   req_tools=('ls')
   ext_paths=('this_path_is_not_used')
 
   path_before="${PATH}"
-  run extend_path req_tools ext_paths
+  extend_path req_tools ext_paths
   path_after="${PATH}"
 
-  exp_line_2='  ls: OK'
-
   [ "${path_before}" = "${path_after}" ]
+}
+
+@test '#24 - extend_path with tool in (unchanged) PATH and any path succeeds, prints expected output' {
+
+  req_tools=('ls')
+  ext_paths=('this_path_is_not_used')
+
+  run extend_path req_tools ext_paths
+
+  exp_line_2='  ls: OK'
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
@@ -461,19 +505,27 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
-@test '#19 - extend_path with two tools in (unchanged) PATH and any path succeeds, does not change PATH' {
+@test '#25 - extend_path with two tools in (unchanged) PATH and any path succeeds, does not change PATH' {
 
   req_tools=('cat' 'ls')
   ext_paths=('this_path_is_not_used')
 
   path_before="${PATH}"
-  run extend_path req_tools ext_paths
+  extend_path req_tools ext_paths
   path_after="${PATH}"
+
+  [ "${path_before}" = "${path_after}" ]
+}
+
+@test '#26 - extend_path with two tools in (unchanged) PATH and any path succeeds, prints expected output' {
+
+  req_tools=('cat' 'ls')
+  ext_paths=('this_path_is_not_used')
+
+  run extend_path req_tools ext_paths
 
   exp_line_2='  cat: OK'
   exp_line_3='  ls: OK'
-
-  [ "${path_before}" = "${path_after}" ]
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
@@ -481,22 +533,30 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
-@test '#20 - extend_path with five tools in (unchanged) PATH and any path succeeds, does not change PATH' {
+@test '#27 - extend_path with five tools in (unchanged) PATH and any path succeeds, does not change PATH' {
 
   req_tools=('cat' 'chmod' 'cp' 'date' 'ls')
   ext_paths=('this_path_is_not_used')
 
   path_before="${PATH}"
-  run extend_path req_tools ext_paths
+  extend_path req_tools ext_paths
   path_after="${PATH}"
+
+  [ "${path_before}" = "${path_after}" ]
+}
+
+@test '#28 - extend_path with five tools in (unchanged) PATH and any path succeeds, prints expected output' {
+
+  req_tools=('cat' 'chmod' 'cp' 'date' 'ls')
+  ext_paths=('this_path_is_not_used')
+
+  run extend_path req_tools ext_paths
 
   exp_line_2='  cat: OK'
   exp_line_3='  chmod: OK'
   exp_line_4='  cp: OK'
   exp_line_5='  date: OK'
   exp_line_6='  ls: OK'
-
-  [ "${path_before}" = "${path_after}" ]
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
@@ -508,28 +568,19 @@ function teardown
   [ "${output}" = "${exp_out}" ]
 }
 
+# TODO: also test 1, 2, 5 items in ext_paths ?
+
 # ------------------------------------------------------------------------------
 
-@test '#21 - extend_path with nonexistent tool and existing path fails, changes PATH' {
+# NOTE: with bats, it is not possible to test if PATH was changed if FUT fails
+
+@test '#29 - extend_path with nonexistent tool and existing path fails - CHANGE TO PATH CAN NOT BE TESTED' {
 
   req_tools=('this_tool_does_not_exist')
   # defined in setup function
   ext_paths=("${folder_1}")
 
-  # TODO: PATH is unchanged, most likely because bats runs test in a subshell:
-  # https://github.com/bats-core/bats-core/pull/146/ ...
-  #  ... commits/c5e2404dde9b15b73c510d20bc657800bdec9c0b
-
-  path_before="${PATH}"
   run extend_path req_tools ext_paths
-  path_after="${PATH}"
-
-  # NOTE: for this to show up in test output, run bats with --tap:
-  # https://github.com/bats-core/bats-core#printing-to-the-terminal
-  # echo "# path_before : ${path_before}" >&3
-  # echo "# path_after  : ${path_after}"  >&3
-
-  echo "output:"$'\n'"${output}"
 
   exp_line_2='  this_tool_does_not_exist: FAIL'
   exp_line_3="  append ${folder_1} to PATH and retry:"

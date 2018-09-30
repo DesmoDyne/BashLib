@@ -155,19 +155,17 @@ function extend_path
             # test if path is already in PATH
             if [[ "${PATH}" = *"${ext_path}"* ]]
             then
-                echo "  path ${ext_path} is already in PATH; skip"
+                echo "  WARNING: path ${ext_path} is already in PATH; skip"
                 continue
             else
                 # TODO: test if readable / executable ?
                 if [ ! -d "${ext_path}" ]
                 then
-                    echo "  folder ${ext_path} does not exist; skip"
+                    echo "  WARNING: folder ${ext_path} does not exist; skip"
                     continue
                 fi
                 echo "  append ${ext_path} to PATH and retry:"
-                # echo "  old path: ${PATH}"
                 PATH="${PATH}:${ext_path}"
-                # echo "  new path: ${PATH}"
             fi
         fi
 
