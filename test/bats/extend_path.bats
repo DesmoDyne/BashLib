@@ -86,6 +86,20 @@
 #
 # TODO: add the above to bats-core doc: https://github.com/bats-core/bats-core
 
+# NOTE: to run these tests without installing bats, use a Docker container, e.g.
+#   $ cd <BashLib project root, e.g. ~/DevBase/DesmoDyne/Tools/BashLib>
+#   $ docker run --interactive                  \
+#                --name BashLib_Test            \
+#                --tty                          \
+#                --volume "$(pwd):/opt/BashLib" \
+#                bats/bats:latest               \
+#                /opt/BashLib/test/bats
+#         ... <test output> ...
+#   # shorter form:
+#   $ docker run -it -v "$(pwd):/opt/BashLib" --name BashLib_Test \
+#       bats/bats:latest /opt/BashLib/test/bats
+#         ... <test output> ...
+#   $ docker rm BashLib_Test
 
 # TODO: create issue at github.com / bats-core: setup / teardown sample code ?
 # TODO: if two tests have the same text and the second fails,
