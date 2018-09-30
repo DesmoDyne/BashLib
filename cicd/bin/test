@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+# test
+#
+# test artifacts of this project
+#
+# author  : stefan schablowski
+# contact : stefan.schablowski@desmodyne.com
+# created : 2016-06-16
+
+
+# TODO: verify required executables are available before using them
+# TODO: run this in docker image:
+#       https://github.com/bats-core/bats-core#running-bats-in-docker
+
+
+# -----------------------------------------------------------------------------
+# configure script parameters
+
+# path from this script to project root
+path_to_project_root='../..'
+
+# absolute path to this script: http://stackoverflow.com/a/9107028
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# NOTE: realpath fails if path does not exist
+path_to_project_root="$(realpath "${here}/${path_to_project_root}")"
+
+# path to folder with .bats test files, relative to project root
+# TODO: support multiple folders underneath common root folder
+# TODO: if this folder does not exist, bats fails with
+#       /usr/local/Cellar/bats-core/1.1.0/libexec/bats-core/bats: ...
+#        ... line 49: cd: test: No such file or directory
+# --> create issue at https://github.com/bats-core/bats-core/issues
+path_to_bats_folder='test/bats'
+
+
+# -----------------------------------------------------------------------------
+# test this project
+
+if ! pushd "${path_to_project_root}" > /dev/null
+then
+    echo "Failed to pushd to project root ${path_to_project_root}"
+    exit 1
+fi
+
+# bats displays its own output
+bats "${path_to_bats_folder}"
+exit_code="$?"
+
+if ! popd > /dev/null
+then
+    echo "Failed to popd from project root ${path_to_project_root}"
+    exit 1
+fi
+
+exit ${exit_code}
