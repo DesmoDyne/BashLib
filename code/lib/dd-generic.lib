@@ -157,16 +157,17 @@ function extend_path
             then
                 echo "  WARNING: path ${ext_path} is already in PATH; skip"
                 continue
-            else
-                # TODO: test if readable / executable ?
-                if [ ! -d "${ext_path}" ]
-                then
-                    echo "  WARNING: folder ${ext_path} does not exist; skip"
-                    continue
-                fi
-                echo "  append ${ext_path} to PATH and retry:"
-                PATH="${PATH}:${ext_path}"
             fi
+
+            # TODO: test if readable / executable ?
+            if [ ! -d "${ext_path}" ]
+            then
+                echo "  WARNING: folder ${ext_path} does not exist; skip"
+                continue
+            fi
+
+            echo "  append ${ext_path} to PATH and retry:"
+            PATH="${PATH}:${ext_path}"
         fi
 
         for req_tool in "${req_tools_[@]}"

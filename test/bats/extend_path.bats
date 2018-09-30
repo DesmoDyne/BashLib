@@ -89,6 +89,7 @@
 #       both are reported as failures, even though the first succeeds
 # TODO: shellcheck parsing is severely messed up in here
 # TODO: permutate over all possible combinations of input arguments ?
+# TODO: pre-define variables often used in tests in setup function
 
 
 function setup
@@ -136,6 +137,10 @@ function setup
     # shellcheck disable=SC2034
     folder_3="${BATS_TMPDIR:?}/folder_3"
 
+    # test tool 1
+    # shellcheck disable=SC2034
+    tool_1='tool_1'
+
     # NOTE: this only tests if library can be sourced;
     # functions are only defined in "$(...)" subshell,
     # so a second source for use in here is required
@@ -151,7 +156,15 @@ function setup
     source "${path_to_library}"
 
     # create test environment
+
     if ! output="$(mkdir "${folder_1}" "${folder_2}" "${folder_3}" 2>&1)"
+    then
+        echo "${output}"
+        return 1
+    fi
+
+    if ! output="$(touch     "${folder_1}/${tool_1}" && \
+                   chmod a+x "${folder_1}/${tool_1}" 2>&1)"
     then
         echo "${output}"
         return 1
@@ -169,6 +182,8 @@ function teardown
         return 1
     fi
 
+    # TODO: unset variables defined in setup function ?
+
     return 0
 }
 
@@ -181,12 +196,6 @@ function teardown
 @test '#01 - extend_path without arguments fails, prints an error' {
 
   run extend_path
-
-  # echo "expected:"
-  # echo "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}"
-
-  # echo "actual:"
-  # echo "${output}"
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
@@ -577,7 +586,7 @@ function teardown
 @test '#29 - extend_path with nonexistent tool and existing path fails - CHANGE TO PATH CAN NOT BE TESTED' {
 
   req_tools=('this_tool_does_not_exist')
-  # defined in setup function
+  # NOTE: defined in setup function
   ext_paths=("${folder_1}")
 
   run extend_path req_tools ext_paths
@@ -586,14 +595,57 @@ function teardown
   exp_line_3="  append ${folder_1} to PATH and retry:"
   exp_line_4='  this_tool_does_not_exist: FAIL'
 
-  # TODO: this test should fail, but it doesn't
-  [ "${path_before}" = "${path_after}" ]
-
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
 
   exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
   exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"
+
+  # shellcheck disable=SC2154
+  [ "${output}" = "${exp_out}" ]
+}
+
+@test '#30 - extend_path with existing tool and existing path succeeds, changes PATH' {
+
+  req_tools=("${tool_1}")
+  ext_paths=("${folder_1}")
+
+  path_before="${PATH}"
+  extend_path req_tools ext_paths
+  path_after="${PATH}"
+
+  # printing cleanly (i.e. ungarbled) from within test function
+  # works a lot better when running bats with --tap:
+  # https://github.com/bats-core/bats-core#printing-to-the-terminal
+
+  # echo "# path_before : ${path_before}" >&3
+  # echo "# path_after  : ${path_after}"  >&3
+
+  # NOTE: not using 'run', so output is not set
+  # echo '# output:'$'\n'"${output}" >&3
+
+  [ "${path_after}" = "${path_before}:${folder_1}" ]
+}
+
+@test '#31 - extend_path with existing tool and existing path succeeds, prints expected output' {
+
+  req_tools=("${tool_1}")
+  ext_paths=("${folder_1}")
+
+  run extend_path req_tools ext_paths
+
+  exp_line_2="  ${tool_1}: FAIL"
+  exp_line_3="  append ${folder_1} to PATH and retry:"
+  exp_line_4="  ${tool_1}: OK"
+
+  # shellcheck disable=SC2154
+  [ "${status}" -eq 0 ]
+
+  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
+  exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"
+
+  # echo 'expected output:'$'\n'"${exp_out}"
+  # echo 'actual output:'$'\n'"${output}"
 
   # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
