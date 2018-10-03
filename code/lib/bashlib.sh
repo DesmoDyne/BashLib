@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 
-# dd-generic.lib
+# bashlib.sh
 #
 # DesmoDyne library of generic bash functions
 #
@@ -11,7 +11,7 @@
 
 # NOTE: this library is not meant to be executed;
 # instead use functions in own scripts with e.g.
-#   source <path to this library>/dd-generic.lib
+#   source <path to this library>/bashlib.sh
 
 # no shell she-bang, but a shellcheck shell directive:
 # https://github.com/koalaman/shellcheck/issues/581
@@ -22,20 +22,11 @@
 # https://google.github.io/styleguide/shell.xml?showone=Loops#Loops
 
 
-# TODO: fix shellcheck issues
-# TODO: review library name, e.g. use .sh as per styleguide convention
-# TODO: do not use global variables, but function parameters
-# TODO: document parameters and return values
-# TODO: really set variables in here and use them elsewhere ?
-# TODO: review function names, most of them do more than the name suggests
 # TODO: use named parameters ? https://stackoverflow.com/a/30033822
 # TODO: use Bash Infinity Framework ?
 #       https://invent.life/project/bash-infinity-framework
 # TODO: add code location indicator to log messages ?
-# TODO: add unit-tests
 # TODO: review using 'local' for variable declaration
-# TODO: (globally) redirect error messages to stderr using >&2
-# TODO: align / indent output / review log output in general
 
 
 # treat unset variables and parameters as error for parameter expansion:
@@ -46,6 +37,82 @@ set -o nounset
 
 
 # define functions: http://stackoverflow.com/a/6212408
+
+
+# -----------------------------------------------------------------------------
+# test operating system is supported and configure various commonly used tools
+#
+# This functions restricts the supported environments to Linux and macOS and
+# makes the GNU version of commonly used command line tools (grep, sed, etc.)
+# available to BashLib users under unified global variables; on macOS, this is
+# in addition to the BSD tool variants.
+# It is most useful when features are required that GNU tools provide, but are
+# not supported by their BSD version, especially extended regular expressions.
+# In practice, this means calling e.g. grep from a shell script still resolves
+# to the 'native' tool, i.e. GNU grep on Linux and BSD grep on macOS; however,
+# using e.g. "${grep}" resolves to GNU grep on both Linux and macOS.
+#
+# NOTE: at this stage, this function does not test if any of the cmd line tools
+# are actually available, neither the native version nor GNU tools on macOS;
+# on macOS, you may install GNU command line tools using Homebrew with e.g.
+#   brew install coreutils findutils grep gnu-sed
+# under their usual names with a 'g' prefixed to each name; see also e.g.
+#   https://brew.sh/
+#   https://apple.stackexchange.com/a/88812
+#
+# Prerequisites:
+#   operating system is Linux or macOS
+# Globals:
+#   OSTYPE - evaluated to determine current OS
+#   grep   - set to  'grep' on Linux,  'ggrep' on macOS
+#   sed    - set to   'sed' on Linux,   'gsed' on macOS
+#   xargs  - set to 'xargs' on Linux, 'gxargs' on macOS
+# Arguments:
+#   None  - any arguments passed are silently ignored
+# Returns:
+#   0 if platform is supported, 1 otherwise
+#
+# Sample code:
+#   # call the function without any parameters
+#   configure_platform
+#   # use -E to enable extended regular expressions
+#   "${sed}" -E ...
+
+# TODO: test if command line tools are actually available, fail if not ?
+
+function configure_platform
+{
+    # http://stackoverflow.com/a/18434831
+
+    # TODO: for some reason, shellcheck reports SC2034 on macOS in the linux-*)
+    # case for the grep=... and sed=... lines, but not for the xargs=... line
+    # and not for the darwin*) case; review disabling and situation on Linux
+
+    case "${OSTYPE}" in
+        darwin*)
+            echo 'configure platform: OK'
+            grep='ggrep'
+            sed='gsed'
+            xargs='gxargs'
+            ;;
+        linux-*)
+            echo 'configure platform: OK'
+            # shellcheck disable=SC2034
+            grep='grep'
+            # shellcheck disable=SC2034
+            sed='sed'
+            xargs='xargs'
+            ;;
+        *)
+            msg='configure platform: ERROR'$'\n'
+            msg+="unsupported operating system: ${OSTYPE}"
+            echo "${msg}" >&2
+            return 1
+            ;;
+    esac
+
+    return 0
+}
 
 
 # -----------------------------------------------------------------------------
@@ -67,6 +134,8 @@ set -o nounset
 # version of anything you are currently developing; the exact executables
 # being used depend on the order of paths in PATH; this is a source of error.
 #
+# Prerequisites:
+#   Bash 4.0 or later, uses arrays not available in earlier versions
 # Globals:
 #   possibly extends PATH by paths in <ext_paths>
 # Arguments:
@@ -81,14 +150,14 @@ set -o nounset
 #   req_tools=('my_helper_script' 'vagrant' 'javac')
 #   ext_paths=('/usr/local/bin' '<path to my scripts>' '/opt/vagrant/bin')
 #   extend_path req_tools ext_paths
-#
+
 # TODO: does changing PATH have any side effects to calling script ?
 
 function extend_path
 {
     echo 'verify required executables are available in PATH:'
 
-    if [ "$#" -ne 2 ]
+    if [ "${#}" -ne 2 ]
     then
         msg='ERROR: wrong number of arguments'$'\n'
         msg+='please see function code for usage and sample code'
@@ -129,8 +198,8 @@ function extend_path
     # that occurs when client code also uses
     # 'req_tools' as name for the variable
     # passed as argument to this function
-    local -n req_tools_=${1}
-    local -n ext_paths_=${2}
+    local -n req_tools_="${1}"
+    local -n ext_paths_="${2}"
 
     # test if req tools array is empty
     if [ -z "${req_tools_[*]}" ]
@@ -222,185 +291,147 @@ function extend_path
 
 
 # -----------------------------------------------------------------------------
-function determine_platform
-{
-    echo -n 'determine platform: '
+# process script command line arguments and get path to configuration file
+#
+# NOTE: this function is only useful if the main script follows the convention
+# to take a single parameter, the path to a main script configuration file
+#
+# Dependencies:
+#   uses 'usage' function
+# Globals:
+#   ${#}, ${1} - evaluated to get arguments passed to script using this function
+#   conf_file  - set to path to configuration file after function succeeds
+# Arguments:
+#   conf_file  - path to configuration file
+# Returns:
+#   0 if a valid path to configuration file was found in args, 1 otherwise
+#
+# Sample code:
+#   # pass all arguments to main script on to this function
+#   proc_cmd_line_args "${@}"
 
-    # http://stackoverflow.com/a/18434831
+# TODO: support more than one argument, pass on any further arguments ?
+# TODO: try to use ~/.<script_name>.yaml or so if no config file is passed ?
+# TODO: support symbolic link to configuration file
 
-    # TODO: strictly speaking, setting variables in here is a side effect
-
-    case "${OSTYPE}" in
-        darwin*)
-            echo 'OK'
-            grep='ggrep'
-            sed='gsed'
-            xargs='gxargs'
-            ;;
-        linux-*)
-            echo 'OK'
-            grep='grep'
-            sed='sed'
-            xargs='xargs'
-            ;;
-        *)
-            echo 'ERROR'
-            echo "unsupported operating system: ${OSTYPE}"
-            return 1
-            ;;
-    esac
-}
-
-# -----------------------------------------------------------------------------
 function proc_cmd_line_args
 {
     echo -n 'process command line arguments: '
 
-    # NOTE: for some reason, if no parameters are passed,
-    # "$#" is 0, but "$0" still returns the name of the script being run
-
-    # name of the script being run:
-    # http://stackoverflow.com/q/192319
-    script_name="$(basename "$0")"
-
-    # TODO: this fails as this function
-    # is called with no parameters
-    if [ $# -ne 1 ]
+    if [ "${#}" -ne 1 ]
     then
-        echo 'ERROR'
-        echo "wrong number of arguments: $#"
-        echo
-        usage
+        msg='ERROR'$'\n''wrong number of arguments'$'\n'$'\n'
+        msg+="$(usage)"
+        echo "${msg}" >&2
         return 1
     fi
 
     # http://stackoverflow.com/a/14203146
-    while [ $# -gt 0 ]
+    # NOTE: this code seems overly complex for a single argument,
+    # but easily be extended to support an arbitrary number of arguments
+    while [ ${#} -gt 0 ]
     do
         key="$1"
 
         case "${key}" in
-          # NOTE: must escape -?, seems to act as wildcard otherwise
-          -\?|--help) echo 'HELP'; echo; usage; return 1 ;;
+            # NOTE: must escape -?, seems to act as wildcard otherwise
+            -\?|--help)
+            echo 'HELP'; echo; usage; return 1 ;;
 
-          *)  if [ -z "${config_file}" ]
-              then
-                  config_file="$1"
-              else
-                  echo 'ERROR'
-                  echo 'wrong number of arguments'
-                  echo
-                  usage
-                  return 1
-              fi
+            *)
+            if [ -z "${conf_file}" ]
+            then
+                conf_file="${1}"
+            else
+                msg='ERROR'$'\n''wrong number of arguments'$'\n'$'\n'
+                msg+="$(usage)"
+                echo "${msg}" >&2
+                return 1
+            fi
         esac
 
         # move past argument or value
         shift
     done
 
-    # TODO: try to use ~/.<script_name>.yaml or so if no config file is passed ?
-    # TODO: use absolute path to config file in output ?
-
     # config file is a mandatory command line argument
-    if [ -z "${config_file}" ]
+    if [ -z "${conf_file}" ]
     then
-        echo 'ERROR'
-        echo 'wrong number of arguments'
-        echo
-        usage
+        msg='ERROR'$'\n''wrong number of arguments'$'\n'$'\n'
+        msg+="$(usage)"
+        echo "${msg}" >&2
         return 1
     fi
 
     # http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_07_01.html
-    if [ ! -e "${config_file}" ]
+
+    if [ ! -e "${conf_file}" ]
     then
-        echo 'ERROR'
-        echo "${config_file}: No such file or directory"
+        msg='ERROR'$'\n'"${conf_file}: Path not found"$'\n'
+        echo "${msg}" >&2
         return 1
     fi
 
-    if [ ! -r "${config_file}" ]
+    if [ ! -f "${conf_file}" ]
     then
-        echo 'ERROR'
-        echo "${config_file}: File is not readable"
+        msg='ERROR'$'\n'"${conf_file}: Path is not a file"$'\n'
+        echo "${msg}" >&2
+        return 1
+    fi
+
+    if [ ! -r "${conf_file}" ]
+    then
+        msg='ERROR'$'\n'"${conf_file}: File is not readable"$'\n'
+        echo "${msg}" >&2
         return 1
     fi
 
     echo 'OK'
+
+    return 0
 }
 
 # -----------------------------------------------------------------------------
+# print help message with information on how to use a script
+#
+# NOTE: this function is only useful if the main script follows the convention
+# to take a single parameter, the path to a main script configuration file
+#
+# Globals:
+#   ${0} - evaluated to set name of main script in message
+# Arguments:
+#   None  - any arguments passed are silently ignored
+# Returns:
+#   always succeeds, returns 0
+#
+# Sample code:
+#   usage
+
 function usage
 {
-    # TODO: space between << and 'EOT' makes a
-    # difference for atom syntax highlighting
-    # TODO: align properly and remove leading space when printing ?
+    # https://stackoverflow.com/q/192319
+    # https://stackoverflow.com/a/965072
+    script_name="${0##*/}"
 
-    read -r -d '' msg_tmpl <<'EOT'
-Usage: %s <config file>
+    # NOTE: indentation added here for improved readability
+    # is stripped by sed when message is printed
+    read -r -d '' msg_tmpl << EOT
+    Usage: %s <config file>
 
-mandatory arguments:
-  config file           absolute path to configuration file
+    mandatory arguments:
+      config file           absolute path to configuration file
 
-optional arguments:
-  -?, --help            print this help message
+    optional arguments:
+      -?, --help            print this help message
 EOT
 
+    # NOTE: printf strips trailing newlines
     # shellcheck disable=SC2059
-    printf "${msg_tmpl}\\n" "${script_name}"
-}
+    msg="$(printf "${msg_tmpl}" "${script_name}" | sed -e 's|^    ||g')"$'\n'
 
-# -----------------------------------------------------------------------------
-function validate_config_settings
-{
-    echo -n 'validate configuration settings: '
+    echo "${msg}"
 
-    # TODO: verify path_to_sec_loc is an absolute path ?
-    # TODO: resolve symbolic links into real path ?
-
-    if [ -e "${path_to_sec_loc}" ]
-    then
-        if [ -d "${path_to_sec_loc}" ]
-        then
-            echo 'OK'
-        else
-            echo 'ERROR'
-            echo 'path exists, but is not a directory:'
-            echo "${path_to_sec_loc}"
-            return 1
-        fi
-    else
-        # split paths into its components
-        # https://askubuntu.com/a/600252
-        # TODO: this fails with whitespace in path
-        comps="$("${xargs}" -n 1 -d '/' <<< "${path_to_sec_loc}" | "${xargs}")"
-
-        # turn path components into array
-        # https://stackoverflow.com/a/13402368
-        # NOTE: word splitting is intended here
-        # shellcheck disable=SC2206
-        array=(${comps})
-
-        # NOTE: alternate / shorter approach:
-        # https://github.com/koalaman/shellcheck/wiki/SC2207
-        # mapfile -t array < \
-        #     <("${xargs}" -n 1 -d '/' <<< "${path_to_sec_loc}" | "${xargs}")
-
-        # if at least the first two path components exist,
-        # they are considered a solid base for the rest
-        # TODO: this is specific to local secure location
-        # TODO: this assumes at least two comps in path
-        if [ -d "/${array[0]}/${array[1]}" ]
-        then
-            echo 'OK'
-        else
-            echo 'ERROR'
-            echo 'path to secure location is not mounted:'
-            echo "${path_to_sec_loc}"
-            return 1
-        fi
-    fi
+    return 0
 }
 
 
