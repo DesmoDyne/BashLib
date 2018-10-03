@@ -22,21 +22,11 @@
 # https://google.github.io/styleguide/shell.xml?showone=Loops#Loops
 
 
-# TODO: fix shellcheck issues
-# TODO: do not use global variables, but function parameters
-# TODO: document parameters and return values
-# TODO: document function prerequisites, e.g. installed tools
-# TODO: document function dependencies, e.g. other functions used
-# TODO: really set variables in here and use them elsewhere ?
-# TODO: review function names, most of them do more than the name suggests
 # TODO: use named parameters ? https://stackoverflow.com/a/30033822
 # TODO: use Bash Infinity Framework ?
 #       https://invent.life/project/bash-infinity-framework
 # TODO: add code location indicator to log messages ?
-# TODO: add unit-tests
 # TODO: review using 'local' for variable declaration
-# TODO: (globally) redirect error messages to stderr using >&2
-# TODO: align / indent output / review log output in general
 
 
 # treat unset variables and parameters as error for parameter expansion:
@@ -64,12 +54,14 @@ set -o nounset
 #
 # NOTE: at this stage, this function does not test if any of the cmd line tools
 # are actually available, neither the native version nor GNU tools on macOS;
-# on macOS, install GNU command line tools using Homebrew with e.g.
+# on macOS, you may install GNU command line tools using Homebrew with e.g.
 #   brew install coreutils findutils grep gnu-sed
 # under their usual names with a 'g' prefixed to each name; see also e.g.
 #   https://brew.sh/
 #   https://apple.stackexchange.com/a/88812
 #
+# Prerequisites:
+#   operating system is Linux or macOS
 # Globals:
 #   OSTYPE - evaluated to determine current OS
 #   grep   - set to  'grep' on Linux,  'ggrep' on macOS
@@ -142,6 +134,8 @@ function configure_platform
 # version of anything you are currently developing; the exact executables
 # being used depend on the order of paths in PATH; this is a source of error.
 #
+# Prerequisites:
+#   Bash 4.0 or later, uses arrays not available in earlier versions
 # Globals:
 #   possibly extends PATH by paths in <ext_paths>
 # Arguments:
@@ -302,6 +296,8 @@ function extend_path
 # NOTE: this function is only useful if the main script follows the convention
 # to take a single parameter, the path to a main script configuration file
 #
+# Dependencies:
+#   uses 'usage' function
 # Globals:
 #   ${#}, ${1} - evaluated to get arguments passed to script using this function
 #   conf_file  - set to path to configuration file after function succeeds
@@ -436,58 +432,6 @@ EOT
     echo "${msg}"
 
     return 0
-}
-
-# -----------------------------------------------------------------------------
-function validate_config_settings
-{
-    echo -n 'validate configuration settings: '
-
-    # TODO: verify path_to_sec_loc is an absolute path ?
-    # TODO: resolve symbolic links into real path ?
-
-    if [ -e "${path_to_sec_loc}" ]
-    then
-        if [ -d "${path_to_sec_loc}" ]
-        then
-            echo 'OK'
-        else
-            echo 'ERROR'
-            echo 'path exists, but is not a directory:'
-            echo "${path_to_sec_loc}"
-            return 1
-        fi
-    else
-        # split paths into its components
-        # https://askubuntu.com/a/600252
-        # TODO: this fails with whitespace in path
-        comps="$("${xargs}" -n 1 -d '/' <<< "${path_to_sec_loc}" | "${xargs}")"
-
-        # turn path components into array
-        # https://stackoverflow.com/a/13402368
-        # NOTE: word splitting is intended here
-        # shellcheck disable=SC2206
-        array=(${comps})
-
-        # NOTE: alternate / shorter approach:
-        # https://github.com/koalaman/shellcheck/wiki/SC2207
-        # mapfile -t array < \
-        #     <("${xargs}" -n 1 -d '/' <<< "${path_to_sec_loc}" | "${xargs}")
-
-        # if at least the first two path components exist,
-        # they are considered a solid base for the rest
-        # TODO: this is specific to local secure location
-        # TODO: this assumes at least two comps in path
-        if [ -d "/${array[0]}/${array[1]}" ]
-        then
-            echo 'OK'
-        else
-            echo 'ERROR'
-            echo 'path to secure location is not mounted:'
-            echo "${path_to_sec_loc}"
-            return 1
-        fi
-    fi
 }
 
 
