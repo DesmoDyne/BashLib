@@ -189,7 +189,7 @@ function setup
     fi
 
     # TODO: use shorter code
-
+    # TODO: I think this only redirects error messages from last command
     if ! output="$(touch     "${folder_1}/${tool_11}" && \
                    chmod a+x "${folder_1}/${tool_11}" && \
                    touch     "${folder_1}/${tool_12}" && \

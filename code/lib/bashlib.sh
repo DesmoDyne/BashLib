@@ -25,6 +25,8 @@
 # TODO: fix shellcheck issues
 # TODO: do not use global variables, but function parameters
 # TODO: document parameters and return values
+# TODO: document function prerequisites, e.g. installed tools
+# TODO: document function dependencies, e.g. other functions used
 # TODO: really set variables in here and use them elsewhere ?
 # TODO: review function names, most of them do more than the name suggests
 # TODO: use named parameters ? https://stackoverflow.com/a/30033822
@@ -161,7 +163,7 @@ function extend_path
 {
     echo 'verify required executables are available in PATH:'
 
-    if [ "$#" -ne 2 ]
+    if [ "${#}" -ne 2 ]
     then
         msg='ERROR: wrong number of arguments'$'\n'
         msg+='please see function code for usage and sample code'
@@ -202,8 +204,8 @@ function extend_path
     # that occurs when client code also uses
     # 'req_tools' as name for the variable
     # passed as argument to this function
-    local -n req_tools_=${1}
-    local -n ext_paths_=${2}
+    local -n req_tools_="${1}"
+    local -n ext_paths_="${2}"
 
     # test if req tools array is empty
     if [ -z "${req_tools_[*]}" ]
