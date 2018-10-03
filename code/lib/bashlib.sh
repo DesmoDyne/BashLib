@@ -48,6 +48,80 @@ set -o nounset
 
 
 # -----------------------------------------------------------------------------
+# test operating system is supported and configure various commonly used tools
+#
+# This functions restricts the supported environments to Linux and macOS and
+# makes the GNU version of commonly used command line tools (grep, sed, etc.)
+# available to BashLib users under unified global variables; on macOS, this is
+# in addition to the BSD tool variants.
+# It is most useful when features are required that GNU tools provide, but are
+# not supported by their BSD version, especially extended regular expressions.
+# In practice, this means calling e.g. grep from a shell script still resolves
+# to the 'native' tool, i.e. GNU grep on Linux and BSD grep on macOS; however,
+# using e.g. "${grep}" resolves to GNU grep on both Linux and macOS.
+#
+# NOTE: at this stage, this function does not test if any of the cmd line tools
+# are actually available, neither the native version nor GNU tools on macOS;
+# on macOS, install GNU command line tools using Homebrew with e.g.
+#   brew install coreutils findutils grep gnu-sed
+# under their usual names with a 'g' prefixed to each name; see also e.g.
+#   https://brew.sh/
+#   https://apple.stackexchange.com/a/88812
+
+# Globals:
+#   OSTYPE - evaluated to determine current OS
+#   grep   - set to  'grep' on Linux,  'ggrep' on macOS
+#   sed    - set to   'sed' on Linux,   'gsed' on macOS
+#   xargs  - set to 'xargs' on Linux, 'gxargs' on macOS
+# Arguments:
+#   None  - any arguments passed are silently ignored
+# Returns:
+#   0 if platform is supported, 1 otherwise
+#
+# Sample code:
+#   # call the function without any parameters
+#   configure_platform
+#   # use -E to enable extended regular expressions
+#   "${sed}" -E ...
+
+# TODO: test if command line tools are actually available, fail if not ?
+
+function configure_platform
+{
+    # http://stackoverflow.com/a/18434831
+
+    # TODO: for some reason, shellcheck reports SC2034 on macOS in the linux-*)
+    # case for the grep=... and sed=... lines, but not for the xargs=... line
+    # and not for the darwin*) case; review disabling and situation on Linux
+
+    case "${OSTYPE}" in
+        darwin*)
+            echo 'configure platform: OK'
+            grep='ggrep'
+            sed='gsed'
+            xargs='gxargs'
+            ;;
+        linux-*)
+            echo 'configure platform: OK'
+            # shellcheck disable=SC2034
+            grep='grep'
+            # shellcheck disable=SC2034
+            sed='sed'
+            xargs='xargs'
+            ;;
+        *)
+            msg='configure platform: ERROR'$'\n'
+            msg+="unsupported operating system: ${OSTYPE}"
+            echo "${msg}" >&2
+            return 1
+            ;;
+    esac
+
+    return 0
+}
+
+
+# -----------------------------------------------------------------------------
 # extend path to other scripts or executables
 #
 # Test if all executables in <req_tools> are found in PATH; if not,
@@ -80,7 +154,7 @@ set -o nounset
 #   req_tools=('my_helper_script' 'vagrant' 'javac')
 #   ext_paths=('/usr/local/bin' '<path to my scripts>' '/opt/vagrant/bin')
 #   extend_path req_tools ext_paths
-#
+
 # TODO: does changing PATH have any side effects to calling script ?
 
 function extend_path
@@ -219,36 +293,6 @@ function extend_path
     return 1
 }
 
-
-# -----------------------------------------------------------------------------
-function determine_platform
-{
-    echo -n 'determine platform: '
-
-    # http://stackoverflow.com/a/18434831
-
-    # TODO: strictly speaking, setting variables in here is a side effect
-
-    case "${OSTYPE}" in
-        darwin*)
-            echo 'OK'
-            grep='ggrep'
-            sed='gsed'
-            xargs='gxargs'
-            ;;
-        linux-*)
-            echo 'OK'
-            grep='grep'
-            sed='sed'
-            xargs='xargs'
-            ;;
-        *)
-            echo 'ERROR'
-            echo "unsupported operating system: ${OSTYPE}"
-            return 1
-            ;;
-    esac
-}
 
 # -----------------------------------------------------------------------------
 function proc_cmd_line_args
