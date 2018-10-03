@@ -295,82 +295,102 @@ function extend_path
 
 
 # -----------------------------------------------------------------------------
+# process script command line arguments and get path to configuration file
+#
+# NOTE: this function is only useful if the main script follows the convention
+# to take a single parameter, the path to a main script configuration file
+#
+# Globals:
+#   ${#}, ${1} - evaluated to get arguments passed to script using this function
+#   conf_file  - set to path to configuration file after function succeeds
+# Arguments:
+#   conf_file  - path to configuration file
+# Returns:
+#   0 if a valid path to configuration file was found in args, 1 otherwise
+#
+# Sample code:
+#   # pass all arguments to main script on to this function
+#   proc_cmd_line_args "${@}"
+
+# TODO: support more than one argument, pass on any further arguments ?
+# TODO: try to use ~/.<script_name>.yaml or so if no config file is passed ?
+# TODO: support symbolic link to configuration file
+
 function proc_cmd_line_args
 {
     echo -n 'process command line arguments: '
 
-    # NOTE: for some reason, if no parameters are passed,
-    # "$#" is 0, but "$0" still returns the name of the script being run
-
-    # name of the script being run:
-    # http://stackoverflow.com/q/192319
-    script_name="$(basename "$0")"
-
-    # TODO: this fails as this function
-    # is called with no parameters
-    if [ $# -ne 1 ]
+    if [ "${#}" -ne 1 ]
     then
-        echo 'ERROR'
-        echo "wrong number of arguments: $#"
-        echo
-        usage
+        msg='ERROR'$'\n''wrong number of arguments'$'\n'$'\n'
+        msg+="$(usage)"
+        echo "${msg}" >&2
         return 1
     fi
 
     # http://stackoverflow.com/a/14203146
-    while [ $# -gt 0 ]
+    # NOTE: this code seems overly complex for a single argument,
+    # but easily be extended to support an arbitrary number of arguments
+    while [ ${#} -gt 0 ]
     do
         key="$1"
 
         case "${key}" in
-          # NOTE: must escape -?, seems to act as wildcard otherwise
-          -\?|--help) echo 'HELP'; echo; usage; return 1 ;;
+            # NOTE: must escape -?, seems to act as wildcard otherwise
+            -\?|--help)
+            echo 'HELP'; echo; usage; return 1 ;;
 
-          *)  if [ -z "${config_file}" ]
-              then
-                  config_file="$1"
-              else
-                  echo 'ERROR'
-                  echo 'wrong number of arguments'
-                  echo
-                  usage
-                  return 1
-              fi
+            *)
+            if [ -z "${conf_file}" ]
+            then
+                conf_file="${1}"
+            else
+                msg='ERROR'$'\n''wrong number of arguments'$'\n'$'\n'
+                msg+="$(usage)"
+                echo "${msg}" >&2
+                return 1
+            fi
         esac
 
         # move past argument or value
         shift
     done
 
-    # TODO: try to use ~/.<script_name>.yaml or so if no config file is passed ?
-    # TODO: use absolute path to config file in output ?
-
     # config file is a mandatory command line argument
-    if [ -z "${config_file}" ]
+    if [ -z "${conf_file}" ]
     then
-        echo 'ERROR'
-        echo 'wrong number of arguments'
-        echo
-        usage
+        msg='ERROR'$'\n''wrong number of arguments'$'\n'$'\n'
+        msg+="$(usage)"
+        echo "${msg}" >&2
         return 1
     fi
 
     # http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_07_01.html
-    if [ ! -e "${config_file}" ]
+
+    if [ ! -e "${conf_file}" ]
     then
-        echo 'ERROR'
-        echo "${config_file}: No such file or directory"
+        msg='ERROR'$'\n'"${conf_file}: Path not found"$'\n'
+        echo "${msg}" >&2
         return 1
     fi
 
-    if [ ! -r "${config_file}" ]
+    if [ ! -f "${conf_file}" ]
     then
-        echo 'ERROR'
-        echo "${config_file}: File is not readable"
+        msg='ERROR'$'\n'"${conf_file}: Path is not a file"$'\n'
+        echo "${msg}" >&2
+        return 1
+    fi
+
+    if [ ! -r "${conf_file}" ]
+    then
+        msg='ERROR'$'\n'"${conf_file}: File is not readable"$'\n'
+        echo "${msg}" >&2
         return 1
     fi
 
     echo 'OK'
+
+    return 0
 }
 
 # -----------------------------------------------------------------------------
@@ -391,6 +411,7 @@ function proc_cmd_line_args
 
 function usage
 {
+    # https://stackoverflow.com/q/192319
     # https://stackoverflow.com/a/965072
     script_name="${0##*/}"
 
