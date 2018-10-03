@@ -2,7 +2,7 @@
 
 # extend_path.bats
 #
-# bats unit tests for extend_path function from dd-generic.lib
+# bats unit tests for extend_path function from bashlib.sh
 #
 # author  : stefan schablowski
 # contact : stefan.schablowski@desmodyne.com
@@ -39,7 +39,7 @@
 # or
 #    ✗ invoking extend_path without arguments fails and prints an error
 #      (from function `setup' in test file test/bats/extend_path.bats, line 64)
-#        `source "${PATH_TO_LUT}/dd-generic.lib"' failed
+#        `source "${PATH_TO_LUT}/bashlib.sh"' failed
 #      /var/folders/b3/gvjf33sx3xdfb8jblyp3jy680000gp/T/bats.61788.src: ...
 #    ... line 64: <some file>: No such file or directory
 # or
@@ -115,7 +115,7 @@ function setup
     path_to_proj_root='../..'
 
     # path to library with functions under test, relative to project root
-    path_to_lut='code/lib/dd-generic.lib'
+    path_to_lut='code/lib/bashlib.sh'
 
     # absolute path to library; need to use bats variable to work around
     # bats copying test files to temp folder and relative folder don't work:

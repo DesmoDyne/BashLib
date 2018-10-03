@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 
-# dd-generic.lib
+# bashlib.sh
 #
 # DesmoDyne library of generic bash functions
 #
@@ -11,7 +11,7 @@
 
 # NOTE: this library is not meant to be executed;
 # instead use functions in own scripts with e.g.
-#   source <path to this library>/dd-generic.lib
+#   source <path to this library>/bashlib.sh
 
 # no shell she-bang, but a shellcheck shell directive:
 # https://github.com/koalaman/shellcheck/issues/581
@@ -23,7 +23,6 @@
 
 
 # TODO: fix shellcheck issues
-# TODO: review library name, e.g. use .sh as per styleguide convention
 # TODO: do not use global variables, but function parameters
 # TODO: document parameters and return values
 # TODO: really set variables in here and use them elsewhere ?
