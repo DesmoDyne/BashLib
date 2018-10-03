@@ -13,8 +13,6 @@
 #  ... #define-image-and-services-from-gitlab-ciyml
 
 
-image: bats/bats:latest
-
 test:
   script:
     - cicd/bin/test
