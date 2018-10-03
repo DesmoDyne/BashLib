@@ -67,7 +67,7 @@ set -o nounset
 # under their usual names with a 'g' prefixed to each name; see also e.g.
 #   https://brew.sh/
 #   https://apple.stackexchange.com/a/88812
-
+#
 # Globals:
 #   OSTYPE - evaluated to determine current OS
 #   grep   - set to  'grep' on Linux,  'ggrep' on macOS
@@ -374,24 +374,45 @@ function proc_cmd_line_args
 }
 
 # -----------------------------------------------------------------------------
+# print help message with information on how to use a script
+#
+# NOTE: this function is only useful if the main script follows the convention
+# to take a single parameter, the path to a main script configuration file
+#
+# Globals:
+#   ${0} - evaluated to set name of main script in message
+# Arguments:
+#   None  - any arguments passed are silently ignored
+# Returns:
+#   always succeeds, returns 0
+#
+# Sample code:
+#   usage
+
 function usage
 {
-    # TODO: space between << and 'EOT' makes a
-    # difference for atom syntax highlighting
-    # TODO: align properly and remove leading space when printing ?
+    # https://stackoverflow.com/a/965072
+    script_name="${0##*/}"
 
-    read -r -d '' msg_tmpl <<'EOT'
-Usage: %s <config file>
+    # NOTE: indentation added here for improved readability
+    # is stripped by sed when message is printed
+    read -r -d '' msg_tmpl << EOT
+    Usage: %s <config file>
 
-mandatory arguments:
-  config file           absolute path to configuration file
+    mandatory arguments:
+      config file           absolute path to configuration file
 
-optional arguments:
-  -?, --help            print this help message
+    optional arguments:
+      -?, --help            print this help message
 EOT
 
+    # NOTE: printf strips trailing newlines
     # shellcheck disable=SC2059
-    printf "${msg_tmpl}\\n" "${script_name}"
+    msg="$(printf "${msg_tmpl}" "${script_name}" | sed -e 's|^    ||g')"$'\n'
+
+    echo "${msg}"
+
+    return 0
 }
 
 # -----------------------------------------------------------------------------
