@@ -84,9 +84,8 @@ function configure_platform
 {
     # http://stackoverflow.com/a/18434831
 
-    # TODO: for some reason, shellcheck reports SC2034 on macOS in the linux-*)
-    # case for the grep=... and sed=... lines, but not for the xargs=... line
-    # and not for the darwin*) case; review disabling and situation on Linux
+    # TODO: shellcheck reports SC2034 on macOS in the linux-*) case,
+    # but not for the darwin*) case; review disabling and situation on Linux
 
     case "${OSTYPE}" in
         darwin*)
@@ -101,6 +100,7 @@ function configure_platform
             grep='grep'
             # shellcheck disable=SC2034
             sed='sed'
+            # shellcheck disable=SC2034
             xargs='xargs'
             ;;
         *)
