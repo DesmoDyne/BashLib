@@ -27,6 +27,10 @@
 #       https://invent.life/project/bash-infinity-framework
 # TODO: add code location indicator to log messages ?
 # TODO: review using 'local' for variable declaration
+# TODO: be quiet unless --verbose is passed
+#       or set in ~/.bashlib.conf or BASHLIB_OPTIONS
+# TODO: global flag to determine if BashLib was already sourced ?
+# TODO: add color to output ? green OK, red ERROR, yellow FAIL / WARNING ?
 
 
 # treat unset variables and parameters as error for parameter expansion:
@@ -84,9 +88,8 @@ function configure_platform
 {
     # http://stackoverflow.com/a/18434831
 
-    # TODO: for some reason, shellcheck reports SC2034 on macOS in the linux-*)
-    # case for the grep=... and sed=... lines, but not for the xargs=... line
-    # and not for the darwin*) case; review disabling and situation on Linux
+    # TODO: shellcheck reports SC2034 on macOS in the linux-*) case,
+    # but not for the darwin*) case; review disabling and situation on Linux
 
     case "${OSTYPE}" in
         darwin*)
@@ -101,6 +104,7 @@ function configure_platform
             grep='grep'
             # shellcheck disable=SC2034
             sed='sed'
+            # shellcheck disable=SC2034
             xargs='xargs'
             ;;
         *)
@@ -256,6 +260,7 @@ function extend_path
             # https://github.com/koalaman/shellcheck/wiki/SC2230
             # https://linux.die.net/man/1/bash
             # search for 'command [-pVv] command'
+            # TODO: align OK / FAIL in output over all lines
             echo -n "  ${req_tool}: "
             if [ -x "$(command -v "${req_tool}")" ]
             then
