@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 
-# proc_cmd_line_args.bats
+# get_conf_file_arg.bats
 #
-# bats unit tests for proc_cmd_line_args function from bashlib.sh
+# bats unit tests for get_conf_file_arg function from bashlib.sh
 #
 # author  : stefan schablowski
 # contact : stefan.schablowski@desmodyne.com
@@ -18,7 +18,7 @@ function setup
     path_to_proj_root='../..'
 
     # path to library with functions under test, relative to project root
-    path_to_lut='code/lib/bashlib.sh'
+    path_to_lut='code/lib/dd-bash-lib.sh'
 
     # absolute path to library; need to use bats variable to work around
     # bats copying test files to temp folder and relative folder don't work:
@@ -43,7 +43,7 @@ function setup
     #   ... (variable multi-line contents)
     #EOT
 
-    err_msg_1='process command line arguments: ERROR'$'\n'
+    err_msg_1='get configuration file command line argument: ERROR'$'\n'
     err_msg_1+='wrong number of arguments'$'\n'
     err_msg_1+=$'\n'
     err_msg_1+='Usage: bats-exec-test <config file>'$'\n'
@@ -100,9 +100,9 @@ function teardown
 # ------------------------------------------------------------------------------
 # test wrong number of arguments
 
-@test '#01 - proc_cmd_line_args without arguments fails, prints an error' {
+@test '#01 - get_conf_file_arg without arguments fails, prints an error' {
 
-  run proc_cmd_line_args
+  run get_conf_file_arg
 
   # NOTE: this is only displayed if test fails
   echo
@@ -116,9 +116,9 @@ function teardown
   [ "${output}" = "${err_msg_1}" ]
 }
 
-@test '#02 - proc_cmd_line_args with two arguments fails, prints an error' {
+@test '#02 - get_conf_file_arg with two arguments fails, prints an error' {
 
-  run proc_cmd_line_args 'first_arg' 'second_arg'
+  run get_conf_file_arg 'first_arg' 'second_arg'
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
@@ -129,9 +129,9 @@ function teardown
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#03 - proc_cmd_line_args with empty path fails, prints an error' {
+@test '#03 - get_conf_file_arg with empty path fails, prints an error' {
 
-  run proc_cmd_line_args ''
+  run get_conf_file_arg ''
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
@@ -139,11 +139,11 @@ function teardown
   [ "${output}" = "${err_msg_1}" ]
 }
 
-@test '#04 - proc_cmd_line_args with nonexistent path fails, prints an error' {
+@test '#04 - get_conf_file_arg with nonexistent path fails, prints an error' {
 
-  run proc_cmd_line_args 'this_path_does_not_exist'
+  run get_conf_file_arg 'this_path_does_not_exist'
 
-  exp_out='process command line arguments: ERROR'$'\n'
+  exp_out='get configuration file command line argument: ERROR'$'\n'
   exp_out+='this_path_does_not_exist: Path not found'
 
   # shellcheck disable=SC2154
@@ -152,11 +152,11 @@ function teardown
   [ "${output}" = "${exp_out}" ]
 }
 
-@test '#05 - proc_cmd_line_args with unreadable file fails, prints an error' {
+@test '#05 - get_conf_file_arg with unreadable file fails, prints an error' {
 
-  run proc_cmd_line_args "${file_1}"
+  run get_conf_file_arg "${file_1}"
 
-  exp_out='process command line arguments: ERROR'$'\n'
+  exp_out='get configuration file command line argument: ERROR'$'\n'
   exp_out+="${file_1}: File is not readable"
 
   # shellcheck disable=SC2154
@@ -165,11 +165,11 @@ function teardown
   [ "${output}" = "${exp_out}" ]
 }
 
-@test '#06 - proc_cmd_line_args with folder path fails, prints an error' {
+@test '#06 - get_conf_file_arg with folder path fails, prints an error' {
 
-  run proc_cmd_line_args "${folder_1}"
+  run get_conf_file_arg "${folder_1}"
 
-  exp_out='process command line arguments: ERROR'$'\n'
+  exp_out='get configuration file command line argument: ERROR'$'\n'
   exp_out+="${folder_1}: Path is not a file"
 
   # shellcheck disable=SC2154
@@ -178,11 +178,11 @@ function teardown
   [ "${output}" = "${exp_out}" ]
 }
 
-@test '#07 - proc_cmd_line_args with valid file succeeds, prints expected output' {
+@test '#07 - get_conf_file_arg with valid file succeeds, prints expected output' {
 
-  run proc_cmd_line_args "${file_2}"
+  run get_conf_file_arg "${file_2}"
 
-  exp_out='process command line arguments: OK'
+  exp_out='get configuration file command line argument: OK'
 
   # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
@@ -192,24 +192,24 @@ function teardown
 
 # NOTE: see extend_path.bats on running tests with or without 'run'
 
-@test '#08 - proc_cmd_line_args with valid file succeeds, sets conf_file global variable' {
+@test '#08 - get_conf_file_arg with valid file succeeds, sets conf_file global variable' {
 
   # make sure global variable is not already set
   # shellcheck disable=SC2154
   [ -z "${conf_file}" ]
 
-  proc_cmd_line_args "${file_2}"
+  get_conf_file_arg "${file_2}"
 
   # shellcheck disable=SC2154
   [ -n "${conf_file}" ]
 }
 
-@test '#09 - proc_cmd_line_args with valid file succeeds, sets conf_file to argument' {
+@test '#09 - get_conf_file_arg with valid file succeeds, sets conf_file to argument' {
 
   # shellcheck disable=SC2154
   [ -z "${conf_file}" ]
 
-  proc_cmd_line_args "${file_2}"
+  get_conf_file_arg "${file_2}"
 
   # shellcheck disable=SC2154
   [ "${conf_file}" = "${file_2}" ]

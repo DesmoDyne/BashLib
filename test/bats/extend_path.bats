@@ -115,7 +115,7 @@ function setup
     path_to_proj_root='../..'
 
     # path to library with functions under test, relative to project root
-    path_to_lut='code/lib/bashlib.sh'
+    path_to_lut='code/lib/dd-bash-lib.sh'
 
     # absolute path to library; need to use bats variable to work around
     # bats copying test files to temp folder and relative folder don't work:
