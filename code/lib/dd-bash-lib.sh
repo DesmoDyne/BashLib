@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 
-# bashlib.sh
+# dd-bash-lib.sh
 #
 # DesmoDyne library of generic bash functions
 #
@@ -11,7 +11,10 @@
 
 # NOTE: this library is not meant to be executed;
 # instead use functions in own scripts with e.g.
-#   source <path to this library>/bashlib.sh
+#   source <path to this library>/dd-bash-lib.sh
+# if BashLib is installed using brew with custom tap:
+#   source /usr/local/lib/dd-bash-lib.sh
+# see also https://github.com/desmodyne/homebrew-tools
 
 # no shell she-bang, but a shellcheck shell directive:
 # https://github.com/koalaman/shellcheck/issues/581
@@ -27,8 +30,8 @@
 #       https://invent.life/project/bash-infinity-framework
 # TODO: add code location indicator to log messages ?
 # TODO: review using 'local' for variable declaration
-# TODO: be quiet unless --verbose is passed
-#       or set in ~/.bashlib.conf or BASHLIB_OPTIONS
+# TODO: be quiet unless --verbose / -v is passed
+#       or set in ~/.dd-bash-lib.conf or DD_BASH_LIB_OPTIONS
 # TODO: global flag to determine if BashLib was already sourced ?
 # TODO: add color to output ? green OK, red ERROR, yellow FAIL / WARNING ?
 
@@ -296,7 +299,7 @@ function extend_path
 
 
 # -----------------------------------------------------------------------------
-# process script command line arguments and get path to configuration file
+# get path to script configuration file from command line arguments
 #
 # NOTE: this function is only useful if the main script follows the convention
 # to take a single parameter, the path to a main script configuration file
@@ -313,15 +316,15 @@ function extend_path
 #
 # Sample code:
 #   # pass all arguments to main script on to this function
-#   proc_cmd_line_args "${@}"
+#   get_conf_file_arg "${@}"
 
 # TODO: support more than one argument, pass on any further arguments ?
 # TODO: try to use ~/.<script_name>.yaml or so if no config file is passed ?
 # TODO: support symbolic link to configuration file
 
-function proc_cmd_line_args
+function get_conf_file_arg
 {
-    echo -n 'process command line arguments: '
+    echo -n 'get configuration file command line argument: '
 
     if [ "${#}" -ne 1 ]
     then
