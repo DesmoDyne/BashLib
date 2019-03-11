@@ -299,7 +299,7 @@ function extend_path
 
 
 # -----------------------------------------------------------------------------
-# process script command line arguments and get path to configuration file
+# get path to script configuration file from command line arguments
 #
 # NOTE: this function is only useful if the main script follows the convention
 # to take a single parameter, the path to a main script configuration file
@@ -316,15 +316,15 @@ function extend_path
 #
 # Sample code:
 #   # pass all arguments to main script on to this function
-#   proc_cmd_line_args "${@}"
+#   get_conf_file_arg "${@}"
 
 # TODO: support more than one argument, pass on any further arguments ?
 # TODO: try to use ~/.<script_name>.yaml or so if no config file is passed ?
 # TODO: support symbolic link to configuration file
 
-function proc_cmd_line_args
+function get_conf_file_arg
 {
-    echo -n 'process command line arguments: '
+    echo -n 'get configuration file command line argument: '
 
     if [ "${#}" -ne 1 ]
     then
