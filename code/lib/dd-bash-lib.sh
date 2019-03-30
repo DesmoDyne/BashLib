@@ -98,6 +98,7 @@ function configure_platform
         darwin*)
             echo 'configure platform: OK'
             grep='ggrep'
+            readlink='greadlink'
             sed='gsed'
             xargs='gxargs'
             ;;
@@ -105,6 +106,8 @@ function configure_platform
             echo 'configure platform: OK'
             # shellcheck disable=SC2034
             grep='grep'
+            # shellcheck disable=SC2034
+            readlink='readlink'
             # shellcheck disable=SC2034
             sed='sed'
             # shellcheck disable=SC2034
