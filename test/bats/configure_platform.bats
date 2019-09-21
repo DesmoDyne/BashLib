@@ -34,14 +34,14 @@ function setup
     err_msg_1='configure platform: ERROR'
 
     # shellcheck disable=SC1090
-    if ! output="$(source "${path_to_library}" 2>&1)"
+    if output="$(source "${path_to_library}" 2>&1)"
     then
+        # shellcheck disable=SC1090
+        source "${path_to_library}"
+    else
         echo "${output}"
         return 1
     fi
-
-    # shellcheck disable=SC1090
-    source "${path_to_library}"
 
     return 0
 }

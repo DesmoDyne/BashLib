@@ -171,14 +171,15 @@ function setup
     # so a second source for use in here is required
     # https://github.com/koalaman/shellcheck/wiki/SC1090
     # shellcheck disable=SC1090
-    if ! output="$(source "${path_to_library}" 2>&1)"
+    # shellcheck disable=SC1090
+    if output="$(source "${path_to_library}" 2>&1)"
     then
+        # shellcheck disable=SC1090
+        source "${path_to_library}"
+    else
         echo "${output}"
         return 1
     fi
-
-    # shellcheck disable=SC1090
-    source "${path_to_library}"
 
     # create test environment
 
