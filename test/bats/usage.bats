@@ -60,7 +60,6 @@ function setup
 
   run usage
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
 
   exp_out="${out_msg}"
@@ -71,6 +70,5 @@ function setup
   echo
   echo 'actual output:'$'\n'"${output}"
 
-  # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
 }

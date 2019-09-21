@@ -209,7 +209,7 @@ function setup
 
 @test '#13 - get_attrs_from_json with valid arguments succeeds, prints expected output' {
 
-  # TODO: why does shellcheck report these, but not those above ?
+  # TODO: why does shellcheck report these, but not those above or below ?
 
   # shellcheck disable=SC2034
   args=('key_01' 'key_02')
@@ -224,9 +224,7 @@ function setup
 
 @test '#14 - get_attrs_from_json with valid arguments succeeds, sets variables' {
 
-  # shellcheck disable=SC2034
   args=('key_01' 'key_02')
-  # shellcheck disable=SC2034
   opt_args=('key_03')
 
   # NOTE: no 'run'
