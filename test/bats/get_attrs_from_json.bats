@@ -2,7 +2,7 @@
 
 # get_attrs_from_json.bats
 #
-# bats unit tests for get_attrs_from_json function from bashlib.sh
+# bats unit tests for get_attrs_from_json function from dd-bash-lib.sh
 #
 # author  : stefan schablowski
 # contact : stefan.schablowski@desmodyne.com

@@ -2,7 +2,7 @@
 
 # configure_platform.bats
 #
-# bats unit tests for configure_platform function from bashlib.sh
+# bats unit tests for configure_platform function from dd-bash-lib.sh
 #
 # author  : stefan schablowski
 # contact : stefan.schablowski@desmodyne.com

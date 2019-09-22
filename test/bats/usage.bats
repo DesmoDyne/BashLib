@@ -2,7 +2,7 @@
 
 # usage.bats
 #
-# bats unit tests for usage function from bashlib.sh
+# bats unit tests for usage function from dd-bash-lib.sh
 #
 # author  : stefan schablowski
 # contact : stefan.schablowski@desmodyne.com

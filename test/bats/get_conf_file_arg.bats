@@ -2,7 +2,7 @@
 
 # get_conf_file_arg.bats
 #
-# bats unit tests for get_conf_file_arg function from bashlib.sh
+# bats unit tests for get_conf_file_arg function from dd-bash-lib.sh
 #
 # author  : stefan schablowski
 # contact : stefan.schablowski@desmodyne.com

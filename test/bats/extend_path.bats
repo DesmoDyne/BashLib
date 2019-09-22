@@ -2,7 +2,7 @@
 
 # extend_path.bats
 #
-# bats unit tests for extend_path function from bashlib.sh
+# bats unit tests for extend_path function from dd-bash-lib.sh
 #
 # author  : stefan schablowski
 # contact : stefan.schablowski@desmodyne.com
@@ -39,7 +39,7 @@
 # or
 #    ✗ invoking extend_path without arguments fails and prints an error
 #      (from function `setup' in test file test/bats/extend_path.bats, line 64)
-#        `source "${PATH_TO_LUT}/bashlib.sh"' failed
+#        `source "${PATH_TO_LUT}/dd-bash-lib.sh"' failed
 #      /var/folders/b3/gvjf33sx3xdfb8jblyp3jy680000gp/T/bats.61788.src: ...
 #    ... line 64: <some file>: No such file or directory
 # or
