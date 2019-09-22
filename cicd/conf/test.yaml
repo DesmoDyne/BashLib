@@ -1,0 +1,17 @@
+---
+# test.yaml
+#
+# CI/CD scripts configuration file
+#
+# author  : stefan schablowski
+# contact : stefan.schablowski@desmodyne.com
+# created : 2018-10-07
+
+
+# path to folder with .bats test files, relative to project root
+# TODO: support multiple folders underneath common root folder
+# TODO: if this folder does not exist, bats fails with
+#       /usr/local/Cellar/bats-core/1.1.0/libexec/bats-core/bats: ...
+#        ... line 49: cd: test: No such file or directory
+# --> create issue at https://github.com/bats-core/bats-core/issues
+path_to_bats_folder: test/bats

@@ -9,7 +9,14 @@
 # created : 2016-06-16
 
 
-# TODO: verify required executables are available before using them
+# NOTE: see build script for some possibly informative comments
+
+
+echo
+echo 'test project artifacts'
+echo
+
+
 # TODO: run this in docker image:
 #       https://github.com/bats-core/bats-core#running-bats-in-docker
 
@@ -17,30 +24,78 @@
 # -----------------------------------------------------------------------------
 # configure script parameters
 
-# path from this script to project root
-path_to_project_root='../..'
-
 # absolute path to this script: http://stackoverflow.com/a/9107028
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# NOTE: realpath fails if path does not exist
-path_to_project_root="$(realpath "${here}/${path_to_project_root}")"
+# path from this script to project root
+path_to_proj_root='../..'
 
-# path to folder with .bats test files, relative to project root
-# TODO: support multiple folders underneath common root folder
-# TODO: if this folder does not exist, bats fails with
-#       /usr/local/Cellar/bats-core/1.1.0/libexec/bats-core/bats: ...
-#        ... line 49: cd: test: No such file or directory
-# --> create issue at https://github.com/bats-core/bats-core/issues
-path_to_bats_folder='test/bats'
+# absolute path to BashLib library file
+path_to_bashlib='/usr/local/lib/dd-bash-lib.sh'
+
+# path to script configuration file, relative to project root
+path_to_conf_file="cicd/conf/$(basename "${BASH_SOURCE[0]}").yaml"
+
+# array with alphabetical list of tools called by this script
+# shellcheck disable=SC2034
+req_tools=('bats' 'realpath')
+
+# array with paths to append to PATH
+# shellcheck disable=SC2034
+ext_paths=()
+
+
+# -----------------------------------------------------------------------------
+# load BashLib
+
+# shellcheck disable=SC1090
+if output="$(source "${path_to_bashlib}" 2>&1)"
+then
+    # shellcheck disable=SC1090
+    source "${path_to_bashlib}"
+else
+    echo "${output}"
+    exit 1
+fi
+
+
+# -----------------------------------------------------------------------------
+# run BashLib boilerplate functions
+
+if ! configure_platform              ; then exit 1; fi
+if ! extend_path req_tools ext_paths ; then exit 1; fi
+
+
+# -----------------------------------------------------------------------------
+# configure script parameters, cont.
+
+# absolute, canonical path to project root
+path_to_proj_root="$(realpath "${here}/${path_to_proj_root}")"
+
+# absolute, canonical path to configuration file
+path_to_conf_file="${path_to_proj_root}/${path_to_conf_file}"
+
+
+# -----------------------------------------------------------------------------
+# load script configuration
+
+args=(path_to_bats_folder)
+opt_args=()
+
+echo
+echo 'Load script configuration file:'
+if ! get_attrs_from_yaml_file "${path_to_conf_file}" args opt_args
+then
+    exit 1
+fi
 
 
 # -----------------------------------------------------------------------------
 # test this project
 
-if ! pushd "${path_to_project_root}" > /dev/null
+if ! pushd "${path_to_proj_root}" > /dev/null
 then
-    echo "Failed to pushd to project root ${path_to_project_root}"
+    echo "Failed to pushd to project root ${path_to_proj_root}"
     exit 1
 fi
 
@@ -49,14 +104,23 @@ fi
 #   bats --tap "${path_to_bats_folder}"
 # https://github.com/bats-core/bats-core#printing-to-the-terminal
 
+echo
+echo 'Run tests:'
+
 # bats displays its own output
 bats "${path_to_bats_folder}"
 exit_code="$?"
 
 if ! popd > /dev/null
 then
-    echo "Failed to popd from project root ${path_to_project_root}"
+    echo "Failed to popd from project root ${path_to_proj_root}"
     exit 1
 fi
+
+
+echo
+echo 'project artifacts test complete'
+echo
+
 
 exit ${exit_code}
