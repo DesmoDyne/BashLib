@@ -12,6 +12,8 @@
 # TODO: document version standard (semver, tags, git, etc.)
 # TODO: move this script elsewhere for wider usage
 # TODO: print error messages only if --verbose is passed ?
+# TODO: BUG - if this script was run on a repo with a semver, it is reportely
+# incorrectly as that semver when run again on a repo without a semver
 
 
 echo
