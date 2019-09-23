@@ -142,8 +142,6 @@ fi
 # -----------------------------------------------------------------------------
 # sync github remote with gitlab remote
 
-echo
-
 # NOTE: depending on gitlab CI/CD configuration, repo might be in detached head
 # TODO: repo_info > branch seems to be HEAD at times and master at other times
 ref_spec="HEAD:${github_branch}"
@@ -158,9 +156,21 @@ else
     exit 1
 fi
 
+echo -n "push repository tag ${semver} to github: "
+if output="$(git push "${github_repo_url}" "${semver}" 2>&1)"
+then
+    echo 'OK'
+else
+    echo 'ERROR'
+    echo "${output}"
+    exit 1
+fi
+
 
 # -----------------------------------------------------------------------------
 # render brew formula
+
+echo
 
 if [ ! -d "${path_to_local_tmp}" ]
 then
@@ -244,7 +254,7 @@ else
 
     # TODO: use ReleaseTools > dd-rt-verify-user-configuration for this
     # TODO: no output if successful, no idea about output if error
-    echo -n 'configure git user and email:'
+    echo -n 'configure git user and email: '
     if git -C "${path_to_brew_repo}" config user.email "${git_ci_email}" &&
        git -C "${path_to_brew_repo}" config user.name  "${git_ci_user}"
     then
@@ -295,7 +305,7 @@ else
     exit 1
 fi
 
-echo -n 'push changes in repository to remote: '
+echo -n 'push brew formula repository to remote: '
 if output="$(git -C "${path_to_brew_repo}" push 2>&1)"
 then
     echo 'OK'
