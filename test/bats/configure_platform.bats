@@ -2,7 +2,7 @@
 
 # configure_platform.bats
 #
-# bats unit tests for configure_platform function from bashlib.sh
+# bats unit tests for configure_platform function from dd-bash-lib.sh
 #
 # author  : stefan schablowski
 # contact : stefan.schablowski@desmodyne.com
@@ -26,22 +26,20 @@ function setup
     path_to_library="${BATS_TEST_DIRNAME}/${path_to_proj_root}/${path_to_lut}"
 
     # log output message 1
-    # shellcheck disable=SC2034
     out_msg_1='configure platform: OK'
 
     # error message 1
-    # shellcheck disable=SC2034
     err_msg_1='configure platform: ERROR'
 
     # shellcheck disable=SC1090
-    if ! output="$(source "${path_to_library}" 2>&1)"
+    if output="$(source "${path_to_library}" 2>&1)"
     then
+        # shellcheck disable=SC1090
+        source "${path_to_library}"
+    else
         echo "${output}"
         return 1
     fi
-
-    # shellcheck disable=SC1090
-    source "${path_to_library}"
 
     return 0
 }
@@ -52,13 +50,14 @@ function setup
 
 @test '#01 - configure_platform on unsupported OS fails, prints an error' {
 
-  OLD_OSTYPE="${OSTYPE}" && OSTYPE='this_os_does_not_exist'
+  OLD_OSTYPE="${OSTYPE}"
+  # shellcheck disable=SC2030
+  OSTYPE='this_os_does_not_exist'
   run configure_platform
   OSTYPE="${OLD_OSTYPE}"
 
   exp_line_2='unsupported operating system: this_os_does_not_exist'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
 
   exp_out="${err_msg_1}"$'\n'"${exp_line_2}"
@@ -67,7 +66,6 @@ function setup
   echo 'expected output:'$'\n'"${exp_out}"
   echo 'actual output:'$'\n'"${output}"
 
-  # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
 }
 
@@ -75,12 +73,10 @@ function setup
 
   run configure_platform
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
 
   exp_out="${out_msg_1}"
 
-  # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
 }
 
@@ -93,8 +89,11 @@ function setup
 
   configure_platform
 
+  # shellcheck disable=SC2154
   [ -n "${grep}"  ]
+  # shellcheck disable=SC2154
   [ -n "${sed}"   ]
+  # shellcheck disable=SC2154
   [ -n "${xargs}" ]
 }
 
@@ -105,6 +104,7 @@ function setup
   # TODO: (globally) verify OS is supported before running tests ?
   # TODO: actually run this on an unsupported OS
 
+  # shellcheck disable=SC2031
   case "${OSTYPE}" in
       darwin*)
           [ "${grep}"  =  'ggrep' ]
@@ -119,7 +119,7 @@ function setup
       *)
           echo 'ERROR'
           echo "unsupported operating system: ${OSTYPE}"
-          [ false ]
+          [ "${status}" -eq 1 ]
           ;;
   esac
 }
