@@ -74,6 +74,7 @@ set -o nounset
 #   grep   - set to  'grep' on Linux,  'ggrep' on macOS
 #   sed    - set to   'sed' on Linux,   'gsed' on macOS
 #   xargs  - set to 'xargs' on Linux, 'gxargs' on macOS
+#   (plus many other similar command line tools)
 # Arguments:
 #   None  - any arguments passed are silently ignored
 # Returns:
@@ -97,14 +98,20 @@ function configure_platform
     case "${OSTYPE}" in
         darwin*)
             echo 'configure platform: OK'
+            date='gdate'
             grep='ggrep'
+            readlink='greadlink'
             sed='gsed'
             xargs='gxargs'
             ;;
         linux-*)
             echo 'configure platform: OK'
             # shellcheck disable=SC2034
+            date='date'
+            # shellcheck disable=SC2034
             grep='grep'
+            # shellcheck disable=SC2034
+            readlink='readlink'
             # shellcheck disable=SC2034
             sed='sed'
             # shellcheck disable=SC2034
@@ -194,6 +201,8 @@ function extend_path
 
     # pass arrays as function arguments:
     # https://stackoverflow.com/a/29379084
+    # https://www.gnu.org/software/bash/manual/html_node/Shell-Parameters.html
+    # search for 'nameref'
     #
     # there is plenty confusion around arrays
     # and function arguments in bash in general:
@@ -299,6 +308,202 @@ function extend_path
 
 
 # -----------------------------------------------------------------------------
+# extract attributes from JSON string
+#
+# This function sets global variables for all mandatory or optional attributes
+# it extracts from JSON string; for optional attributes that are not found,
+# global variables are set to empty strings, so they can be tested with -n.
+#
+# TODO: research set / unset / defined / undefined / empty variables in bash
+# and review if optional attributes not found can be not set / defined / etc.
+#
+# Prerequisites:
+#   Bash 4.2+, uses arrays and declare -g not available in earlier versions
+# Globals:
+#   ${#}, ${1}, ${2}, ${3} - evaluated to get function arguments
+#   sets global variables corresponding to attributes extracted from JSON string
+# Arguments:
+#   json      - JSON string to extract attributes from
+#   attrs     - string array with names of mandatory attributes to extract
+#   opt_attrs - string array with names of optional attributes to extract
+# Returns:
+#   0 if all mandatory (and no, some or all optional) attributes
+#   were extracted from JSON string into global variables; 1 otherwise
+#
+# Sample code:
+#   json="{ 'key_01': 'value 01', 'key_02': 'value 02', 'key_03': 'value 03' }"
+#   attrs=('key_01' 'key_02')
+#   opt_attrs=('key_03')
+#   get_attrs_from_json json attrs opt_attrs
+
+function get_attrs_from_json
+{
+    if [ "${#}" -ne 3 ]
+    then
+        msg='ERROR: wrong number of arguments'$'\n'
+        msg+='please see function code for usage and sample code'
+        echo "${msg}" >&2
+        return 1
+    fi
+
+    echo -n 'verify input string is valid JSON: '
+    if output="$(jq '.' <<< "${1}" 2>&1)"
+    then
+        echo 'OK'
+    else
+        echo 'ERROR'
+        echo "${output}"
+        return 1
+    fi
+
+    # test if second and third arguments are arrays
+    if ! [[ "$(declare -p "${2}" 2> /dev/null)" =~ "declare -a" ]]
+    then
+        msg='ERROR: <args> argument is not an array'$'\n'
+        msg+='please see function code for usage and sample code'
+        echo "${msg}" >&2
+        return 1
+    fi
+
+    if ! [[ "$(declare -p "${3}" 2> /dev/null)" =~ "declare -a" ]]
+    then
+        msg='ERROR: <opt_args> argument is not an array'$'\n'
+        msg+='please see function code for usage and sample code'
+        echo "${msg}" >&2
+        return 1
+    fi
+
+    json_="${1}"
+    local -n attrs_="${2}"
+    local -n opt_attrs_="${3}"
+
+    # NOTE: declare -g: https://stackoverflow.com/q/9871458/217844
+    # TODO: in case of error, this should either set all variables or none
+    echo -n 'extract mandatory attributes from JSON string: '
+    for attr in "${attrs_[@]}"
+    do
+        output="$(jq -r ".${attr}" <<< "${json_}")"
+        # https://unix.stackexchange.com/a/68349
+        # https://unix.stackexchange.com/a/41418
+        if [ -n "${output}" ] && [ "${output}" != 'null' ]
+        then
+            declare -g "${attr}"="${output}"
+        else
+            echo 'ERROR'
+            echo "Failed to get ${attr} attribute from JSON string"
+            return 1
+        fi
+    done
+    echo 'OK'
+
+    echo -n 'extract optional attributes from JSON string: '
+    # NOTE: for now, set conf attributes to '' if not found
+    # so check if set later in this script can be done with -n
+    # TODO: set / unset / null vars in bash:
+    # https://stackoverflow.com/a/16753536
+    for attr in "${opt_attrs_[@]}"
+    do
+        output="$(jq -r ".${attr}" <<< "${json_}")"
+        if [ -n "${output}" ] && [ "${output}" != 'null' ]
+        then
+            declare -g "${attr}"="${output}"
+        else
+            declare -g "${attr}"=''
+        fi
+    done
+    echo 'OK'
+}
+
+
+# -----------------------------------------------------------------------------
+# extract attributes from YAML file
+#
+# This function loads the YAML file passed as argument, converts its contents
+# into JSON and then internally uses get_attrs_from_json to extract attributes.
+#
+# Prerequisites:
+#   see get_attrs_from_json
+# Globals:
+#   see get_attrs_from_json
+# Arguments:
+#   yaml_file - absolute or relative path to YAML file to extract from
+#   attrs     - string array with names of mandatory attributes to extract
+#   opt_attrs - string array with names of optional attributes to extract
+# Returns:
+#   0 if all mandatory (and no, some or all optional) attributes
+#   were extracted from YAML file into global variables; 1 otherwise
+#
+# Sample code:
+#   yaml_file='path/to/file.yaml'
+#   attrs=('key_01' 'key_02')
+#   opt_attrs=('key_03')
+#   get_attrs_from_yaml_file yaml_file attrs opt_attrs
+
+function get_attrs_from_yaml_file
+{
+    if [ "${#}" -ne 3 ]
+    then
+        msg='ERROR: wrong number of arguments'$'\n'
+        msg+='please see function code for usage and sample code'
+        echo "${msg}" >&2
+        return 1
+    fi
+
+    yaml_file_="${1}"
+
+    # NOTE: yq does not handle errors nor log output upon errors very well:
+    # for example, if the YAML file to load does not exist, it prints e.g.
+    #   Error: open <filename>: no such file or directory
+    # as the first line to stdout, followed by a long usage message and e.g.
+    #   11:29:42 main [ERRO] open <filename>: no such file or directory
+    # as the last line to stderr; none of these can be easily picked up;
+    # also, upon certain characters in keys or values, it panics and prints
+    # an entirely useless Go stack trace without any meaningful information;
+    # need to examine error output to create a somewhat meaningful error message
+
+    # map with first line of yq error message and displayed error message
+    # NOTE: bash fails miserably at supporting wrapping long lines
+    # NOTE:
+    declare -A map_err_msg=(
+        ['Error: asked to process document index 0 but there are only 0 document(s)']="${yaml_file_}: input YAML file is empty"
+        ['Error: Must provide filename']='no input YAML file provided'
+        ["Error: open ${yaml_file_}: no such file or directory"]="${yaml_file_}: no such file or directory"
+        ["Error: open ${yaml_file_}: permission denied"]="${yaml_file_}: permission denied"
+        ['panic: attempted to parse unknown event: none [recovered]']="${yaml_file_}: input YAML file contents is invalid"
+    )
+
+    echo -n 'load YAML file and convert to JSON: '
+    # shellcheck disable=SC2154
+    if output="$(yq read "${yaml_file_}" --tojson 2>&1)"
+    then
+        echo 'OK'
+        json_="${output}"
+    else
+        echo 'ERROR'
+        first_line="$(head -n 1 <<< "${output}")"
+
+        # look up error message to display by first line of yq error message
+        for yq_err_msg in "${!map_err_msg[@]}"
+        do
+            if [ "${first_line}" = "${yq_err_msg}" ]
+            then
+                echo "${map_err_msg[${yq_err_msg}]}"
+                return 1
+            fi
+        done
+
+        # if first line of yq error message is not found in map, display output
+        echo "${output}"
+        return 1
+    fi
+
+    get_attrs_from_json "${json_}" "${2}" "${3}"
+
+    return $?
+}
+
+
+# -----------------------------------------------------------------------------
 # get path to script configuration file from command line arguments
 #
 # NOTE: this function is only useful if the main script follows the convention
@@ -307,7 +512,7 @@ function extend_path
 # Dependencies:
 #   uses 'usage' function
 # Globals:
-#   ${#}, ${1} - evaluated to get arguments passed to script using this function
+#   ${#}, ${1} - evaluated to get arguments passed by script using this function
 #   conf_file  - set to path to configuration file after function succeeds
 # Arguments:
 #   conf_file  - path to configuration file
@@ -398,6 +603,7 @@ function get_conf_file_arg
 
     return 0
 }
+
 
 # -----------------------------------------------------------------------------
 # print help message with information on how to use a script

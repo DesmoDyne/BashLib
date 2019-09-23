@@ -14,5 +14,9 @@
 
 
 test:
-  script:
-    - cicd/bin/test
+  script: cicd/bin/test
+
+upload:
+  only:
+    - master
+  script: cicd/bin/upload

@@ -2,7 +2,7 @@
 
 # usage.bats
 #
-# bats unit tests for usage function from bashlib.sh
+# bats unit tests for usage function from dd-bash-lib.sh
 #
 # author  : stefan schablowski
 # contact : stefan.schablowski@desmodyne.com
@@ -40,14 +40,14 @@ function setup
     out_msg+='  -?, --help            print this help message'
 
     # shellcheck disable=SC1090
-    if ! output="$(source "${path_to_library}" 2>&1)"
+    if output="$(source "${path_to_library}" 2>&1)"
     then
+        # shellcheck disable=SC1090
+        source "${path_to_library}"
+    else
         echo "${output}"
         return 1
     fi
-
-    # shellcheck disable=SC1090
-    source "${path_to_library}"
 
     return 0
 }
@@ -60,7 +60,6 @@ function setup
 
   run usage
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
 
   exp_out="${out_msg}"
@@ -71,6 +70,5 @@ function setup
   echo
   echo 'actual output:'$'\n'"${output}"
 
-  # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
 }

@@ -2,7 +2,7 @@
 
 # extend_path.bats
 #
-# bats unit tests for extend_path function from bashlib.sh
+# bats unit tests for extend_path function from dd-bash-lib.sh
 #
 # author  : stefan schablowski
 # contact : stefan.schablowski@desmodyne.com
@@ -39,7 +39,7 @@
 # or
 #    ✗ invoking extend_path without arguments fails and prints an error
 #      (from function `setup' in test file test/bats/extend_path.bats, line 64)
-#        `source "${PATH_TO_LUT}/bashlib.sh"' failed
+#        `source "${PATH_TO_LUT}/dd-bash-lib.sh"' failed
 #      /var/folders/b3/gvjf33sx3xdfb8jblyp3jy680000gp/T/bats.61788.src: ...
 #    ... line 64: <some file>: No such file or directory
 # or
@@ -129,41 +129,32 @@ function setup
     last_line='please see function code for usage and sample code'
 
     # error message 1
-    # shellcheck disable=SC2034
     err_msg_1='ERROR: wrong number of arguments'
 
     # error message 2
-    # shellcheck disable=SC2034
     err_msg_2='ERROR: <req_tools> argument is not an array'
 
     # error message 3
-    # shellcheck disable=SC2034
     err_msg_3='ERROR: <ext_paths> argument is not an array'
 
     # https://github.com/koalaman/shellcheck/wiki/SC2115
 
     # test folder 1
-    # shellcheck disable=SC2034
     folder_1="${BATS_TMPDIR:?}/folder_1"
 
     # test folder 2
-    # shellcheck disable=SC2034
     folder_2="${BATS_TMPDIR:?}/folder_2"
 
     # test folder 3
-    # shellcheck disable=SC2034
     folder_3="${BATS_TMPDIR:?}/folder_3"
 
     # test tool 1 in folder 1
-    # shellcheck disable=SC2034
     tool_11='tool_11'
 
     # test tool 2 in folder 1
-    # shellcheck disable=SC2034
     tool_12='tool_12'
 
     # test tool 1 in folder 2
-    # shellcheck disable=SC2034
     tool_21='tool_21'
 
     # NOTE: this only tests if library can be sourced;
@@ -171,14 +162,14 @@ function setup
     # so a second source for use in here is required
     # https://github.com/koalaman/shellcheck/wiki/SC1090
     # shellcheck disable=SC1090
-    if ! output="$(source "${path_to_library}" 2>&1)"
+    if output="$(source "${path_to_library}" 2>&1)"
     then
+        # shellcheck disable=SC1090
+        source "${path_to_library}"
+    else
         echo "${output}"
         return 1
     fi
-
-    # shellcheck disable=SC1090
-    source "${path_to_library}"
 
     # create test environment
 
@@ -228,9 +219,7 @@ function teardown
 
   run extend_path
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
 }
 
@@ -238,9 +227,7 @@ function teardown
 
   run extend_path 'first_arg'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
 }
 
@@ -248,9 +235,7 @@ function teardown
 
   run extend_path 'first_arg' 'second_arg' 'third_arg'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
 }
 
@@ -261,9 +246,7 @@ function teardown
 
   run extend_path 'first_arg' 'second_arg'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
 }
 
@@ -271,9 +254,7 @@ function teardown
 
   run extend_path 42 'second_arg'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
 }
 
@@ -281,9 +262,7 @@ function teardown
 
   run extend_path 42.23 'second_arg'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
 }
 
@@ -296,9 +275,7 @@ function teardown
 
   run extend_path req_tools 'second_arg'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
 }
 
@@ -308,9 +285,7 @@ function teardown
 
   run extend_path req_tools 42
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
 }
 
@@ -320,9 +295,7 @@ function teardown
 
   run extend_path req_tools 42.23
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
 }
 
@@ -355,9 +328,7 @@ function teardown
 
   run extend_path req_tools ext_paths
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}" ]
 }
 
@@ -380,9 +351,7 @@ function teardown
 
   run extend_path req_tools ext_paths
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}" ]
 }
 
@@ -405,9 +374,7 @@ function teardown
 
   run extend_path req_tools ext_paths
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}" ]
 }
 
@@ -422,9 +389,7 @@ function teardown
 
   exp_line_2='  this_tool_does_not_exist: FAIL'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
@@ -438,9 +403,7 @@ function teardown
   exp_line_2='  this_tool_does_not_exist: FAIL'
   exp_line_3='  WARNING: folder this_path_does_not_exist does not exist; skip'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
@@ -456,9 +419,7 @@ function teardown
   exp_line_2='  this_tool_does_not_exist: FAIL'
   exp_line_3='  WARNING: path /usr/bin is already in PATH; skip'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
@@ -485,9 +446,7 @@ function teardown
 
   exp_line_2='  ls: OK'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
@@ -512,9 +471,7 @@ function teardown
 
   exp_line_2='  ls: OK'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
@@ -539,9 +496,7 @@ function teardown
 
   exp_line_2='  ls: OK'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
@@ -567,9 +522,7 @@ function teardown
   exp_line_2='  cat: OK'
   exp_line_3='  ls: OK'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
@@ -598,13 +551,11 @@ function teardown
   exp_line_5='  date: OK'
   exp_line_6='  ls: OK'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
 
   exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}"$'\n'
   exp_out+="${exp_line_4}"$'\n'"${exp_line_5}"$'\n'"${exp_line_6}"
 
-  # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
 }
 
@@ -626,13 +577,11 @@ function teardown
   exp_line_3="  append ${folder_1} to PATH and retry:"
   exp_line_4='  this_tool_does_not_exist: FAIL'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
 
   exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
   exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"
 
-  # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
 }
 
@@ -669,7 +618,6 @@ function teardown
   exp_line_3="  append ${folder_1} to PATH and retry:"
   exp_line_4="  ${tool_11}: OK"
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
 
   exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
@@ -679,7 +627,6 @@ function teardown
   echo 'expected output:'$'\n'"${exp_out}"
   echo 'actual output:'$'\n'"${output}"
 
-  # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
 }
 
@@ -709,14 +656,12 @@ function teardown
   exp_line_5="  ${tool_11}: OK"
   exp_line_6="  ${tool_12}: OK"
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
 
   exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
   exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"$'\n'
   exp_out+="${exp_line_5}"$'\n'"${exp_line_6}"
 
-  # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
 }
 
@@ -734,7 +679,9 @@ function teardown
 
 @test '#35 - extend_path with two existing tools in two existing path succeeds, prints expected output' {
 
+  # shellcheck disable=SC2034
   req_tools=("${tool_11}" "${tool_21}")
+  # shellcheck disable=SC2034
   ext_paths=("${folder_1}" "${folder_2}")
 
   run extend_path req_tools ext_paths
@@ -748,7 +695,6 @@ function teardown
   exp_line_7="  append ${folder_2} to PATH and retry:"
   exp_line_8="  ${tool_21}: OK"
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
 
   exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
@@ -756,6 +702,5 @@ function teardown
   exp_out+="${exp_line_5}"$'\n'"${exp_line_6}"$'\n'
   exp_out+="${exp_line_7}"$'\n'"${exp_line_8}"
 
-  # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
 }

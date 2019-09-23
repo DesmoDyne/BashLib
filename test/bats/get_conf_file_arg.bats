@@ -2,7 +2,7 @@
 
 # get_conf_file_arg.bats
 #
-# bats unit tests for get_conf_file_arg function from bashlib.sh
+# bats unit tests for get_conf_file_arg function from dd-bash-lib.sh
 #
 # author  : stefan schablowski
 # contact : stefan.schablowski@desmodyne.com
@@ -26,15 +26,12 @@ function setup
     path_to_library="${BATS_TEST_DIRNAME}/${path_to_proj_root}/${path_to_lut}"
 
     # test file 1
-    # shellcheck disable=SC2034
     file_1="${BATS_TMPDIR:?}/file_1"
 
     # test file 2
-    # shellcheck disable=SC2034
     file_2="${BATS_TMPDIR:?}/file_2"
 
     # test folder 1
-    # shellcheck disable=SC2034
     folder_1="${BATS_TMPDIR:?}/folder_1"
 
     # function output with bats executable
@@ -71,14 +68,14 @@ function setup
     fi
 
     # shellcheck disable=SC1090
-    if ! output="$(source "${path_to_library}" 2>&1)"
+    if output="$(source "${path_to_library}" 2>&1)"
     then
+        # shellcheck disable=SC1090
+        source "${path_to_library}"
+    else
         echo "${output}"
         return 1
     fi
-
-    # shellcheck disable=SC1090
-    source "${path_to_library}"
 
     return 0
 }
@@ -110,9 +107,7 @@ function teardown
   echo
   echo 'actual output:'$'\n'"${output}"
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${err_msg_1}" ]
 }
 
@@ -120,9 +115,7 @@ function teardown
 
   run get_conf_file_arg 'first_arg' 'second_arg'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${err_msg_1}" ]
 }
 
@@ -133,9 +126,7 @@ function teardown
 
   run get_conf_file_arg ''
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${err_msg_1}" ]
 }
 
@@ -146,9 +137,7 @@ function teardown
   exp_out='get configuration file command line argument: ERROR'$'\n'
   exp_out+='this_path_does_not_exist: Path not found'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
 }
 
@@ -159,9 +148,7 @@ function teardown
   exp_out='get configuration file command line argument: ERROR'$'\n'
   exp_out+="${file_1}: File is not readable"
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
 }
 
@@ -172,9 +159,7 @@ function teardown
   exp_out='get configuration file command line argument: ERROR'$'\n'
   exp_out+="${folder_1}: Path is not a file"
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 1 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
 }
 
@@ -184,9 +169,7 @@ function teardown
 
   exp_out='get configuration file command line argument: OK'
 
-  # shellcheck disable=SC2154
   [ "${status}" -eq 0 ]
-  # shellcheck disable=SC2154
   [ "${output}" = "${exp_out}" ]
 }
 
@@ -200,17 +183,14 @@ function teardown
 
   get_conf_file_arg "${file_2}"
 
-  # shellcheck disable=SC2154
   [ -n "${conf_file}" ]
 }
 
 @test '#09 - get_conf_file_arg with valid file succeeds, sets conf_file to argument' {
 
-  # shellcheck disable=SC2154
   [ -z "${conf_file}" ]
 
   get_conf_file_arg "${file_2}"
 
-  # shellcheck disable=SC2154
   [ "${conf_file}" = "${file_2}" ]
 }
