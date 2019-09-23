@@ -112,6 +112,7 @@ path_to_local_tmp="${path_to_proj_root}/${path_to_local_tmp}"
 if ! source get-repo-info "${path_to_proj_root}"; then exit 1; fi
 
 # shellcheck disable=SC2154
+branch="$(  jq -r '.branch'   <<< "${repo_info}")"
 is_dirty="$(jq -r '.is_dirty' <<< "${repo_info}")"
 semver="$(  jq -r '.semver'   <<< "${repo_info}")"
 
@@ -144,8 +145,16 @@ fi
 
 echo
 
+# depending on gitlab CI/CD configuration, repo might be in detached head
+if [ "${branch}" = 'HEAD' ]
+then
+    ref_spec="HEAD:${github_branch}"
+else
+    ref_spec="${github_branch}"
+fi
+
 echo -n "push repository ${github_branch} branch to github: "
-if output="$(git push "${github_repo_url}" "${github_branch}" 2>&1)"
+if output="$(git push "${github_repo_url}" "${ref_spec}" 2>&1)"
 then
     echo 'OK'
 else
@@ -238,6 +247,7 @@ else
         exit 1
     fi
 
+    # TODO: use ReleaseTools > dd-rt-verify-user-configuration for this
     # TODO: no output if successful, no idea about output if error
     echo -n 'configure git user and email:'
     if git -C "${path_to_brew_repo}" config user.email "${git_ci_email}" &&
