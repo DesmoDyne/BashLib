@@ -24,7 +24,7 @@ github_repo_url:       https://github.com/desmodyne/BashLib.git
 github_branch:         master
 
 # project homepage url on github.com
-homepage:              https://github.com/desmodyne/bashlib
+homepage:              https://github.com/desmodyne/BashLib
 
 # path to release archive, relative to homepage
 archive_path:          archive
