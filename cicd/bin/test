@@ -51,7 +51,6 @@ ext_paths=()
 # shellcheck disable=SC1090
 if output="$(source "${path_to_bashlib}" 2>&1)"
 then
-    # shellcheck disable=SC1090
     source "${path_to_bashlib}"
 else
     echo "${output}"
@@ -79,7 +78,9 @@ path_to_conf_file="${path_to_proj_root}/${path_to_conf_file}"
 # -----------------------------------------------------------------------------
 # load script configuration
 
+# shellcheck disable=SC2034
 attrs=(path_to_bats_folder)
+# shellcheck disable=SC2034
 opt_attrs=()
 
 echo
@@ -108,6 +109,7 @@ echo
 echo 'Run tests:'
 
 # bats displays its own output
+# shellcheck disable=SC2154
 bats "${path_to_bats_folder}"
 exit_code="$?"
 
