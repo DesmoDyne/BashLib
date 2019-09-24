@@ -57,10 +57,10 @@ function setup
     err_msg_6='input YAML file contents is invalid'
 
     # error message 7
-    err_msg_7='ERROR: <args> argument is not an array'
+    err_msg_7='ERROR: <attrs> argument is not an array'
 
     # error message 8
-    err_msg_8='ERROR: <opt_args> argument is not an array'
+    err_msg_8='ERROR: <opt_attrs> argument is not an array'
 
     # error message 9
     err_msg_9='extract mandatory attributes from JSON string: ERROR'
@@ -263,9 +263,9 @@ function teardown
 
 @test '#12 - get_attrs_from_yaml_file with string as third argument fails, prints an error' {
 
-  args=()
+  attrs=()
 
-  run get_attrs_from_yaml_file "${valid_file_01}" args 'third_arg'
+  run get_attrs_from_yaml_file "${valid_file_01}" attrs 'third_arg'
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${exp_out_02}" ]
@@ -273,9 +273,9 @@ function teardown
 
 @test '#13 - get_attrs_from_yaml_file with integer as third argument fails, prints an error' {
 
-  args=()
+  attrs=()
 
-  run get_attrs_from_yaml_file "${valid_file_01}" args 42
+  run get_attrs_from_yaml_file "${valid_file_01}" attrs 42
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${exp_out_02}" ]
@@ -283,9 +283,9 @@ function teardown
 
 @test '#14 - get_attrs_from_yaml_file with float as third argument fails, prints an error' {
 
-  args=()
+  attrs=()
 
-  run get_attrs_from_yaml_file "${valid_file_01}" args 42.23
+  run get_attrs_from_yaml_file "${valid_file_01}" attrs 42.23
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${exp_out_02}" ]
@@ -296,10 +296,10 @@ function teardown
 
 @test '#15 - get_attrs_from_yaml_file with empty arguments succeeds, prints expected output' {
 
-  args=()
-  opt_args=()
+  attrs=()
+  opt_attrs=()
 
-  run get_attrs_from_yaml_file "${valid_file_01}" args opt_args
+  run get_attrs_from_yaml_file "${valid_file_01}" attrs opt_attrs
 
   [ "${status}" -eq 0 ]
   [ "${output}" = "${exp_out_03}" ]
@@ -310,11 +310,11 @@ function teardown
   # TODO: why does shellcheck report these, but not those above or below ?
 
   # shellcheck disable=SC2034
-  args=('key_01' 'key_02')
+  attrs=('key_01' 'key_02')
   # shellcheck disable=SC2034
-  opt_args=('key_03')
+  opt_attrs=('key_03')
 
-  run get_attrs_from_yaml_file "${valid_file_03}" args opt_args
+  run get_attrs_from_yaml_file "${valid_file_03}" attrs opt_attrs
 
   [ "${status}" -eq 0 ]
   [ "${output}" = "${exp_out_03}" ]
@@ -322,11 +322,11 @@ function teardown
 
 @test '#17 - get_attrs_from_yaml_file with valid arguments succeeds, sets variables' {
 
-  args=('key_01' 'key_02')
-  opt_args=('key_03')
+  attrs=('key_01' 'key_02')
+  opt_attrs=('key_03')
 
   # NOTE: no 'run'
-  get_attrs_from_yaml_file "${valid_file_03}" args opt_args
+  get_attrs_from_yaml_file "${valid_file_03}" attrs opt_attrs
 
   # shellcheck disable=SC2154
   [ "${key_01}" = 'value 01' ]
@@ -341,11 +341,11 @@ function teardown
   # TODO: why does shellcheck report these, but not those above ?
 
   # shellcheck disable=SC2034
-  args=('key_01' 'key_04')
+  attrs=('key_01' 'key_04')
   # shellcheck disable=SC2034
-  opt_args=('key_03')
+  opt_attrs=('key_03')
 
-  run get_attrs_from_yaml_file "${valid_file_02}" args opt_args
+  run get_attrs_from_yaml_file "${valid_file_02}" attrs opt_attrs
 
   err_msg='Failed to get key_04 attribute from JSON string'
 

@@ -359,7 +359,7 @@ function get_attrs_from_json
     # test if second and third arguments are arrays
     if ! [[ "$(declare -p "${2}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        msg='ERROR: <args> argument is not an array'$'\n'
+        msg='ERROR: <attrs> argument is not an array'$'\n'
         msg+='please see function code for usage and sample code'
         echo "${msg}" >&2
         return 1
@@ -367,7 +367,7 @@ function get_attrs_from_json
 
     if ! [[ "$(declare -p "${3}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        msg='ERROR: <opt_args> argument is not an array'$'\n'
+        msg='ERROR: <opt_attrs> argument is not an array'$'\n'
         msg+='please see function code for usage and sample code'
         echo "${msg}" >&2
         return 1

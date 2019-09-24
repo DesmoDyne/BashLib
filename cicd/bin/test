@@ -79,12 +79,12 @@ path_to_conf_file="${path_to_proj_root}/${path_to_conf_file}"
 # -----------------------------------------------------------------------------
 # load script configuration
 
-args=(path_to_bats_folder)
-opt_args=()
+attrs=(path_to_bats_folder)
+opt_attrs=()
 
 echo
 echo 'Load script configuration file:'
-if ! get_attrs_from_yaml_file "${path_to_conf_file}" args opt_args
+if ! get_attrs_from_yaml_file "${path_to_conf_file}" attrs opt_attrs
 then
     exit 1
 fi
