@@ -423,6 +423,8 @@ function get_attrs_from_json
 # This function loads the YAML file passed as argument, converts its contents
 # into JSON and then internally uses get_attrs_from_json to extract attributes.
 #
+# TODO: support command line argument to specify custom conf file
+#
 # Prerequisites:
 #   see get_attrs_from_json
 # Globals:
