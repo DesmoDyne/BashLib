@@ -24,8 +24,20 @@ class DdBashLib < Formula
   url      "{{ archive_url }}"
   sha256   "{{ sha256_sum }}"
 
+  # TODO: these are only required for CI/CD test / upload / etc. scripts
+  depends_on "bats"
+  depends_on "jinja2-cli"
+
   # required to update default bash 3 to version 4 (or 5)
   depends_on "bash"
+  # req'd for ggrep
+  depends_on "grep"
+  # req'd for gdate, greadlink, realpath and others; sha256sum for CI/CD
+  depends_on "coreutils"
+  # req'd for gxargs
+  depends_on "findutils"
+  # req'd for gsed
+  depends_on "gnu-sed"
   depends_on "jq"
   depends_on "yq"
 
