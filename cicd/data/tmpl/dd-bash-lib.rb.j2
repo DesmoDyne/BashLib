@@ -24,6 +24,9 @@ class DdBashLib < Formula
   url      "{{ archive_url }}"
   sha256   "{{ sha256_sum }}"
 
+  # TODO: introduce convention if to list dependencies that macOS also provides:
+  # curl, git, etc. might have to be installed if latest version is required
+
   # TODO: these are only required for CI/CD test / upload / etc. scripts
   depends_on "bats"
   depends_on "jinja2-cli"
