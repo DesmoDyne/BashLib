@@ -316,6 +316,7 @@ function extend_path
 #
 # TODO: research set / unset / defined / undefined / empty variables in bash
 # and review if optional attributes not found can be not set / defined / etc.
+# TODO: make opt_attrs optional so it must only be passed if actually used
 #
 # Prerequisites:
 #   Bash 4.2+, uses arrays and declare -g not available in earlier versions
@@ -347,6 +348,7 @@ function get_attrs_from_json
     fi
 
     echo -n 'verify input string is valid JSON: '
+    # https://unix.stackexchange.com/a/76407
     if output="$(jq '.' <<< "${1}" 2>&1)"
     then
         echo 'OK'
@@ -359,7 +361,7 @@ function get_attrs_from_json
     # test if second and third arguments are arrays
     if ! [[ "$(declare -p "${2}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        msg='ERROR: <args> argument is not an array'$'\n'
+        msg='ERROR: <attrs> argument is not an array'$'\n'
         msg+='please see function code for usage and sample code'
         echo "${msg}" >&2
         return 1
@@ -367,7 +369,7 @@ function get_attrs_from_json
 
     if ! [[ "$(declare -p "${3}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        msg='ERROR: <opt_args> argument is not an array'$'\n'
+        msg='ERROR: <opt_attrs> argument is not an array'$'\n'
         msg+='please see function code for usage and sample code'
         echo "${msg}" >&2
         return 1
@@ -421,6 +423,8 @@ function get_attrs_from_json
 # This function loads the YAML file passed as argument, converts its contents
 # into JSON and then internally uses get_attrs_from_json to extract attributes.
 #
+# TODO: support command line argument to specify custom conf file
+#
 # Prerequisites:
 #   see get_attrs_from_json
 # Globals:
@@ -463,7 +467,6 @@ function get_attrs_from_yaml_file
 
     # map with first line of yq error message and displayed error message
     # NOTE: bash fails miserably at supporting wrapping long lines
-    # NOTE:
     declare -A map_err_msg=(
         ['Error: asked to process document index 0 but there are only 0 document(s)']="${yaml_file_}: input YAML file is empty"
         ['Error: Must provide filename']='no input YAML file provided'
@@ -472,6 +475,7 @@ function get_attrs_from_yaml_file
         ['panic: attempted to parse unknown event: none [recovered]']="${yaml_file_}: input YAML file contents is invalid"
     )
 
+    # NOTE: this essentially converts YAML to JSON
     echo -n 'load YAML file and convert to JSON: '
     # shellcheck disable=SC2154
     if output="$(yq read "${yaml_file_}" --tojson 2>&1)"
@@ -517,7 +521,7 @@ function get_attrs_from_yaml_file
 # Arguments:
 #   conf_file  - path to configuration file
 # Returns:
-#   0 if a valid path to configuration file was found in args, 1 otherwise
+#   0 if conf_file is a valid path to configuration file, 1 otherwise
 #
 # Sample code:
 #   # pass all arguments to main script on to this function

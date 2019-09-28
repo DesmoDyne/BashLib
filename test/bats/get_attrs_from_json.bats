@@ -41,10 +41,10 @@ function setup
     err_msg_2='verify input string is valid JSON: ERROR'
 
     # error message 3
-    err_msg_3='ERROR: <args> argument is not an array'
+    err_msg_3='ERROR: <attrs> argument is not an array'
 
     # error message 4
-    err_msg_4='ERROR: <opt_args> argument is not an array'
+    err_msg_4='ERROR: <opt_attrs> argument is not an array'
 
     # error message 5
     err_msg_5='extract mandatory attributes from JSON string: ERROR'
@@ -158,9 +158,9 @@ function setup
 
 @test '#09 - get_attrs_from_json with string as third argument fails, prints an error' {
 
-  args=()
+  attrs=()
 
-  run get_attrs_from_json "${json_01}" args 'third_arg'
+  run get_attrs_from_json "${json_01}" attrs 'third_arg'
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${first_line}"$'\n'"${err_msg_4}"$'\n'"${last_err}" ]
@@ -168,9 +168,9 @@ function setup
 
 @test '#10 - get_attrs_from_json with integer as third argument fails, prints an error' {
 
-  args=()
+  attrs=()
 
-  run get_attrs_from_json "${json_01}" args 42
+  run get_attrs_from_json "${json_01}" attrs 42
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${first_line}"$'\n'"${err_msg_4}"$'\n'"${last_err}" ]
@@ -178,9 +178,9 @@ function setup
 
 @test '#11 - get_attrs_from_json with float as third argument fails, prints an error' {
 
-  args=()
+  attrs=()
 
-  run get_attrs_from_json "${json_01}" args 42.23
+  run get_attrs_from_json "${json_01}" attrs 42.23
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${first_line}"$'\n'"${err_msg_4}"$'\n'"${last_err}" ]
@@ -198,10 +198,10 @@ function setup
   # NOTE: empty string is not recognized
   # as function argument, so use single space
   json=' '
-  args=()
-  opt_args=()
+  attrs=()
+  opt_attrs=()
 
-  run get_attrs_from_json "${json}" args opt_args
+  run get_attrs_from_json "${json}" attrs opt_attrs
 
   [ "${status}" -eq 0 ]
   [ "${output}" = "${first_line}"$'\n'"${second_line}"$'\n'"${third_line}" ]
@@ -212,11 +212,11 @@ function setup
   # TODO: why does shellcheck report these, but not those above or below ?
 
   # shellcheck disable=SC2034
-  args=('key_01' 'key_02')
+  attrs=('key_01' 'key_02')
   # shellcheck disable=SC2034
-  opt_args=('key_03')
+  opt_attrs=('key_03')
 
-  run get_attrs_from_json "${json_02}" args opt_args
+  run get_attrs_from_json "${json_02}" attrs opt_attrs
 
   [ "${status}" -eq 0 ]
   [ "${output}" = "${first_line}"$'\n'"${second_line}"$'\n'"${third_line}" ]
@@ -224,11 +224,11 @@ function setup
 
 @test '#14 - get_attrs_from_json with valid arguments succeeds, sets variables' {
 
-  args=('key_01' 'key_02')
-  opt_args=('key_03')
+  attrs=('key_01' 'key_02')
+  opt_attrs=('key_03')
 
   # NOTE: no 'run'
-  get_attrs_from_json "${json_02}" args opt_args
+  get_attrs_from_json "${json_02}" attrs opt_attrs
 
   # shellcheck disable=SC2154
   [ "${key_01}" = 'value 01' ]
@@ -243,11 +243,11 @@ function setup
   # TODO: why does shellcheck report these, but not those above ?
 
   # shellcheck disable=SC2034
-  args=('key_01' 'key_04')
+  attrs=('key_01' 'key_04')
   # shellcheck disable=SC2034
-  opt_args=('key_03')
+  opt_attrs=('key_03')
 
-  run get_attrs_from_json "${json_02}" args opt_args
+  run get_attrs_from_json "${json_02}" attrs opt_attrs
 
   err_msg='Failed to get key_04 attribute from JSON string'
 

@@ -12,7 +12,7 @@
 # TODO: document version standard (semver, tags, git, etc.)
 # TODO: move this script elsewhere for wider usage
 # TODO: print error messages only if --verbose is passed ?
-# TODO: BUG - if this script was run on a repo with a semver, it is reportely
+# TODO: BUG - if this script was run on a repo with a semver, it is reported
 # incorrectly as that semver when run again on a repo without a semver
 
 
@@ -24,8 +24,15 @@ echo
 # -----------------------------------------------------------------------------
 # configure script parameters
 
-# absolute path to BashLib library file
-path_to_bashlib='/usr/local/lib/dd-bash-lib.sh'
+# absolute path to this script: http://stackoverflow.com/a/9107028
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# path from this script to project root
+path_to_proj_root='../..'
+
+# path to BashLib library file, relative to project root
+# NOTE: use local file as that is always the latest version
+path_to_bashlib='code/lib/dd-bash-lib.sh'
 
 # path to script configuration file, relative to project root
 path_to_conf_file='cicd/conf/get-repo-info.yaml'
@@ -43,6 +50,14 @@ ext_paths=()
 
 
 # -----------------------------------------------------------------------------
+# configure script parameters
+
+# absolute, canonical path to BashLib library file
+# NOTE: can not safely use realpath here yet
+path_to_bashlib="${here}/${path_to_proj_root}/${path_to_bashlib}"
+
+
+# -----------------------------------------------------------------------------
 # load BashLib
 
 # NOTE: this only tests if library can be sourced;
@@ -50,14 +65,13 @@ ext_paths=()
 # so a second source for use in here is required
 # https://github.com/koalaman/shellcheck/wiki/SC1090
 # shellcheck disable=SC1090
-if ! output="$(source "${path_to_bashlib}" 2>&1)"
+if output="$(source "${path_to_bashlib}" 2>&1)"
 then
+    source "${path_to_bashlib}"
+else
     echo "${output}"
     exit 1
 fi
-
-# shellcheck disable=SC1090
-source "${path_to_bashlib}"
 
 
 # -----------------------------------------------------------------------------
@@ -76,38 +90,32 @@ if ! extend_path req_tools ext_paths ; then exit 1; fi
 
 
 # -----------------------------------------------------------------------------
+# configure script parameters, cont.
+
+# absolute, canonical path to project root
+path_to_proj_root="$(realpath "${here}/${path_to_proj_root}")"
+
+# absolute, canonical path to configuration file
+path_to_conf_file="${path_to_proj_root}/${path_to_conf_file}"
+
+
+# -----------------------------------------------------------------------------
 # load script configuration
 
-# TODO: support command line argument to specify custom conf file
-# TODO: deal with conf file not existing
-echo -n 'load script configuration file: '
-if output="$(yq read "${path_to_conf_file}" --tojson 2>&1)"
+# shellcheck disable=SC2034
+attrs=(dirty_string
+       no_branch_fallback no_commit_fallback no_count_fallback
+       no_remote_fallback no_semver_fallback no_stage_fallback
+       no_status_fallback no_tag_fallback    no_version_fallback)
+# shellcheck disable=SC2034
+opt_attrs=()
+
+echo
+echo 'Load script configuration file:'
+if ! get_attrs_from_yaml_file "${path_to_conf_file}" attrs opt_attrs
 then
-    echo 'OK'
-    config="${output}"
-else
-    echo 'ERROR'
-    echo "${output}"
     exit 1
 fi
-
-echo -n 'extract script configuration attributes: '
-for attr in dirty_string                                                \
-            no_branch_fallback no_commit_fallback no_count_fallback     \
-            no_remote_fallback no_semver_fallback no_stage_fallback     \
-            no_status_fallback no_tag_fallback    no_version_fallback
-do
-    # https://unix.stackexchange.com/a/68349
-    declare "${attr}"="$(jq -r ".${attr}" <<< "${config}")"
-    # https://unix.stackexchange.com/a/41418
-    if [ -z "${!attr}" ] || [ "${!attr}" = 'null' ]
-    then
-        echo 'ERROR'
-        echo "failed to get ${attr} attribute from configuration"
-        exit 1
-    fi
-done
-echo 'OK'
 
 
 # -----------------------------------------------------------------------------

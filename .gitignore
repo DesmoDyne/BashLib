@@ -27,9 +27,3 @@ tmp
 ._*
 .Spotlight-V100
 .Trashes
-
-
-# -----------------------------------------------------------------------------
-# Python byte-compiled / optimized files
-
-*.py[cod]
