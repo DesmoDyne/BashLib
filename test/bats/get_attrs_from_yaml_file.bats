@@ -48,13 +48,15 @@ function setup
     err_msg_3='no such file or directory'
 
     # error message 4
+    # TODO: this is no longer needed; not removing for now as that would
+    # require re-numbering loads of error messages that follow this one
     err_msg_4='input YAML file is empty'
 
     # error message 5
     err_msg_5='permission denied'
 
     # error message 6
-    err_msg_6='input YAML file contents is invalid'
+    err_msg_6='Error: yaml: found character that cannot start any token'
 
     # error message 7
     err_msg_7='ERROR: <attrs> argument is not an array'
@@ -206,15 +208,7 @@ function teardown
   [ "${output}" = "${err_msg_2}"$'\n'"${non_exist_filename}: ${err_msg_3}" ]
 }
 
-@test '#06 - get_attrs_from_yaml_file with empty YAML file as first argument fails, prints an error' {
-
-  run get_attrs_from_yaml_file "${empty_file}" 'second_arg' 'third_arg'
-
-  [ "${status}" -eq 1 ]
-  [ "${output}" = "${err_msg_2}"$'\n'"${empty_file}: ${err_msg_4}" ]
-}
-
-@test '#07 - get_attrs_from_yaml_file with inaccessible YAML file as first argument fails, prints an error' {
+@test '#06 - get_attrs_from_yaml_file with inaccessible YAML file as first argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${write_only_file}" 'second_arg' 'third_arg'
 
@@ -222,19 +216,19 @@ function teardown
   [ "${output}" = "${err_msg_2}"$'\n'"${write_only_file}: ${err_msg_5}" ]
 }
 
-@test '#08 - get_attrs_from_yaml_file with invalid YAML file as first argument fails, prints an error' {
+@test '#07 - get_attrs_from_yaml_file with invalid YAML file as first argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${invalid_file}" 'second_arg' 'third_arg'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${err_msg_2}"$'\n'"${invalid_file}: ${err_msg_6}" ]
+  [ "${output}" = "${err_msg_2}"$'\n'"${err_msg_6}" ]
 }
 
 
 # ------------------------------------------------------------------------------
 # test wrong type of second argument
 
-@test '#09 - get_attrs_from_yaml_file with string as second argument fails, prints an error' {
+@test '#08 - get_attrs_from_yaml_file with string as second argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${valid_file_01}" 'second_arg' 'third_arg'
 
@@ -242,7 +236,7 @@ function teardown
   [ "${output}" = "${exp_out_01}" ]
 }
 
-@test '#10 - get_attrs_from_yaml_file with integer as second argument fails, prints an error' {
+@test '#09 - get_attrs_from_yaml_file with integer as second argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${valid_file_01}" 42 'third_arg'
 
@@ -250,7 +244,7 @@ function teardown
   [ "${output}" = "${exp_out_01}" ]
 }
 
-@test '#11 - get_attrs_from_yaml_file with float as second argument fails, prints an error' {
+@test '#10 - get_attrs_from_yaml_file with float as second argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${valid_file_01}" 42.23 'third_arg'
 
@@ -261,7 +255,7 @@ function teardown
 # ------------------------------------------------------------------------------
 # test wrong type of third argument
 
-@test '#12 - get_attrs_from_yaml_file with string as third argument fails, prints an error' {
+@test '#11 - get_attrs_from_yaml_file with string as third argument fails, prints an error' {
 
   attrs=()
 
@@ -271,7 +265,7 @@ function teardown
   [ "${output}" = "${exp_out_02}" ]
 }
 
-@test '#13 - get_attrs_from_yaml_file with integer as third argument fails, prints an error' {
+@test '#12 - get_attrs_from_yaml_file with integer as third argument fails, prints an error' {
 
   attrs=()
 
@@ -281,7 +275,7 @@ function teardown
   [ "${output}" = "${exp_out_02}" ]
 }
 
-@test '#14 - get_attrs_from_yaml_file with float as third argument fails, prints an error' {
+@test '#13 - get_attrs_from_yaml_file with float as third argument fails, prints an error' {
 
   attrs=()
 
@@ -293,6 +287,17 @@ function teardown
 
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
+
+@test '#14 - get_attrs_from_yaml_file with empty YAML file as first argument succeeds, prints expected output' {
+
+  attrs=()
+  opt_attrs=()
+
+  run get_attrs_from_yaml_file "${empty_file}" attrs opt_attrs
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "${exp_out_03}" ]
+}
 
 @test '#15 - get_attrs_from_yaml_file with empty arguments succeeds, prints expected output' {
 
