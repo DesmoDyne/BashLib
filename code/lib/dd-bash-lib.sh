@@ -34,6 +34,8 @@
 #       or set in ~/.dd-bash-lib.conf or DD_BASH_LIB_OPTIONS
 # TODO: global flag to determine if BashLib was already sourced ?
 # TODO: add color to output ? green OK, red ERROR, yellow FAIL / WARNING ?
+# TODO: in all func doc, rename arguments to parameters
+# TODO: in all func doc, review/align $1, $2, etc. ./. parameter names
 
 
 # treat unset variables and parameters as error for parameter expansion:
@@ -43,6 +45,17 @@
 set -o nounset
 
 
+# -----------------------------------------------------------------------------
+# define global constants
+
+# string to indicate the line before relevant output on stdout
+dd_bashlib_marker_start='dd_bashlib_marker_start'
+
+# string to indicate the line after relevant output on stdout
+dd_bashlib_marker_end='dd_bashlib_marker_end'
+
+
+# -----------------------------------------------------------------------------
 # define functions: http://stackoverflow.com/a/6212408
 
 
@@ -604,6 +617,163 @@ function get_conf_file_arg
     fi
 
     echo 'OK'
+
+    return 0
+}
+
+
+# -----------------------------------------------------------------------------
+# determine if client is running in development or production environment
+#
+# Globals:
+#   dd_bashlib_marker_start - global BashLib constant to mark start of output
+#   dd_bashlib_marker_end   - global BashLib constant to mark end of output
+# Arguments:
+#   ${1} / here - folder that client project is calling this function from
+# Prints to stdout:
+#   json object, wrapped in start and end marker lines, with properties
+#     environment: development|production|UNKNOWN
+#     root_path:
+#       when environment = development: <path to project root>
+#       when environment = production:  <path to installation root>
+#       when environment = UNKNOWN:     <empty string>
+#   sample output:
+#      ... (other output) ...
+#     dd_bashlib_marker_start
+#     {
+#       "environment": "development",
+#       "root_path": "/Users/ssc/DevBase/DesmoDyne/Tools/RepoTools"
+#     }
+#     dd_bashlib_marker_end
+#      ... (other output) ...
+# Returns:
+#   0 if function succeeded, 1 otherwise
+#
+# Sample code:
+#   # call the function with current folder as ${here} argument
+#   $ output="$(get_environment .)"
+#   # use sed to extract relevant output:
+#   # https://unix.stackexchange.com/a/180729
+#   # NOTE: when running this in interactive bash session,
+#   # history expansion (the '!d' bit) must be disabled
+#   # using 'set +H': https://unix.stackexchange.com/a/384867;
+#   # alternate, more descriptive syntax: 'set +o histexpand':
+#   # https://superuser.com/a/133782
+#   # not required when running in a bash script
+#   $ set +o histexpand
+#   # use temporary variables for shorter code, so line fits in here:
+#   $ start="${dd_bashlib_marker_start}"
+#   $ end="${dd_bashlib_marker_end}"
+#   $ output="$(sed "/${start}/,/${end}/!d;/${end}/q" <<< "${output}")"
+#   # remove first and last lines, the markers themselves:
+#   # https://unix.stackexchange.com/a/264972
+#   $ sed '1d;$d' <<< "${output}"
+
+# TODO: merge this with configure_platform ? renamed to get_platform ?
+# TODO: test this - presumably requires some fake/mock dev/prod test env
+
+function get_environment
+{
+    echo
+    echo 'get environment:'
+
+    # TODO: align this with get_conf_file_arg / usage
+    # TODO: merge this with -z "${path}" below
+
+    if [ $# -ne 1 ]
+    then
+        # get function name: https://stackoverflow.com/a/1835958
+        echo "Usage: ${FUNCNAME[0]} <path>" 2>&1
+        return 1
+    fi
+
+    # TODO: validate arguments
+
+    # path to client tool folder
+    path="${1}"
+
+    if [ -z "${path}" ]
+    then
+        echo "Usage: ${FUNCNAME[0]} <path>" 2>&1
+        return 1
+    fi
+
+    # echo "here: ${here}"
+    # NOTE: sample output when run in different environments:
+    # run on a macOS host, client project installed using brew package:
+    #   here: /usr/local/bin
+    # run on linux host, client project installed using (linux-) brew package:
+    #   here: /home/linuxbrew/.linuxbrew/bin
+    # run on a macOS host, client project run in development project space:
+    #   here: <home>/<dev root>/<project path>/code/bin
+    #   where <home> is the developer's ${HOME} folder,
+    #   <dev root> is the root folder of all development project spaces
+    #   and <project path> is the root folder of the client project space
+    # echo "here: ${here}"
+
+    # NOTE: should get this from conf, but loading conf requires environment...
+    # NOTE: Homebrew sets env vars, e.g. HOMEBREW_PREFIX: /usr/local on macOS
+    # or HOMEBREW_PREFIX=/home/linuxbrew/.linuxbrew on linux, but those env vars
+    # are only an indicator, not definitive proof of where tools are run...
+
+    # regex for path that indicates a project space / development context
+    # NOTE: this assumes DesmoDyne Development Project Space Convention
+    # NOTE: this must work with a variety of client locations, e.g.
+    #   ${HOME}/DevBase/DesmoDyne/Infrastructure/Services/ ... /cicd/bin
+    #   ${HOME}/DevBase/DesmoDyne/Infrastructure/Services/ ... /code/bin
+    #   ${HOME}/DevBase/DesmoDyne/Projects/<project name>/cicd/bin
+    #   ${HOME}/DevBase/DesmoDyne/Projects/<project name>/code/bin
+    #   ${HOME}/DevBase/DesmoDyne/Tools/<project name>/cicd/bin
+    #   ${HOME}/DevBase/DesmoDyne/Tools/<project name>/code/bin
+    # TODO: support clients calling with here = their project root ?
+    re_dev="${HOME}/DevBase/DesmoDyne/.*/(cicd|code)/bin"
+
+    # paths that indicate a production context
+    # TODO: use ${HOMEBREW_PREFIX} with these ?
+    paths_to_prod=('/home/linuxbrew/.linuxbrew/bin' '/usr/local/bin')
+
+    # TODO: establish this as conv to
+    # print arrays in log output in dev
+    # echo 'paths_to_prod:'
+    # printf '  %s\n' "${paths_to_prod[@]}"
+
+    # NOTE: test if string in array:
+    # https://stackoverflow.com/a/47541882
+    # shellcheck disable=SC2154
+    if printf '%s\n' "${paths_to_prod[@]}"  | grep -q "^${here}$"
+    then
+        # running in production, possibly installed using brew:
+        # path from bin folder passed as "${here}" to installation root
+        # TODO: verify installation root == ${HOMEBREW_PREFIX} (if set)
+        path_to_inst_root='..'
+
+        environment='production'
+        root_path="$(realpath "${here}/${path_to_inst_root}")"
+
+    elif grep -qE "${re_dev}" <<< "${here}"
+    then
+        # running in development:
+        # path from bin folder passed as "${here}" to dev project root
+        path_to_proj_root='../..'
+
+        environment='development'
+        root_path="$(realpath "${here}/${path_to_proj_root}")"
+
+    else
+        # TODO: introduce convention on unset json props:
+        # null ? empty string ? not present at all ?
+        environment='UNKNOWN'
+        # TODO: jo prints this as 'null'
+        root_path=''
+    fi
+
+    # TODO: are extra empty lines and | jq '.' really always helpful ?
+    echo
+    echo "${dd_bashlib_marker_start}"
+    jo environment="${environment}" root_path="${root_path}" | jq '.'
+    echo "${dd_bashlib_marker_end}"
+    # TODO: this seems to be ignored
+    echo
 
     return 0
 }
