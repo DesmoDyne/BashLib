@@ -625,24 +625,25 @@ function get_conf_file_arg
 # -----------------------------------------------------------------------------
 # determine if client is running in development or production environment
 #
+# NOTE: testing well-known brew installation bin paths works for *Tools
+# scripts installed (or symlinked) to those paths, but does not work for
+# project scripts which are installed to e.g. /opt/MailFlow/bin;
+# those projects need to pass a suitable folder as second optional parameter
+#
 # Globals:
 #   dd_bashlib_marker_start - global BashLib constant to mark start of output
 #   dd_bashlib_marker_end   - global BashLib constant to mark end of output
 # Arguments:
 #   ${1} / here - folder that client project is calling this function from
+#   ${2} / path - (optional) folder to consider in test for production paths
 # Prints to stdout:
 #   json object, wrapped in start and end marker lines, with properties
 #     environment: development|production|UNKNOWN
-#     root_path:
-#       when environment = development: <path to project root>
-#       when environment = production:  <path to installation root>
-#       when environment = UNKNOWN:     <empty string>
 #   sample output:
 #      ... (other output) ...
 #     dd_bashlib_marker_start
 #     {
 #       "environment": "development",
-#       "root_path": "/Users/ssc/DevBase/DesmoDyne/Tools/RepoTools"
 #     }
 #     dd_bashlib_marker_end
 #      ... (other output) ...
@@ -651,7 +652,7 @@ function get_conf_file_arg
 #
 # Sample code:
 #   # call the function with current folder as ${here} argument
-#   $ output="$(get_environment .)"
+#   $ output="$(get_environment "$(pwd)")"
 #   # use sed to extract relevant output:
 #   # https://unix.stackexchange.com/a/180729
 #   # NOTE: when running this in interactive bash session,
@@ -680,36 +681,43 @@ function get_environment
     # TODO: align this with get_conf_file_arg / usage
     # TODO: merge this with -z "${path}" below
 
-    if [ $# -ne 1 ]
+    if [ $# -ne 1 ] && [ ${#} -ne 2 ]
     then
         # get function name: https://stackoverflow.com/a/1835958
-        echo "Usage: ${FUNCNAME[0]} <path>" 2>&1
+        echo "Usage: ${FUNCNAME[0]} <here> [<path>]" 2>&1
         return 1
     fi
 
     # TODO: validate arguments
+    # TODO: get dev path as arg ?
 
-    # path to client tool folder
-    path="${1}"
+    # path to client tool folder:
+    # "here" from client perspective
+    here="${1}"
 
-    if [ -z "${path}" ]
+    # (optional) client production path
+    path="${2:-}"
+
+    if [ -z "${here}" ]
     then
-        echo "Usage: ${FUNCNAME[0]} <path>" 2>&1
+        echo "Usage: ${FUNCNAME[0]} <here>" 2>&1
         return 1
     fi
 
-    # echo "here: ${here}"
+    echo "here: ${here}"
     # NOTE: sample output when run in different environments:
-    # run on a macOS host, client project installed using brew package:
+    # run on a macOS host, *Tools client project installed as brew package:
     #   here: /usr/local/bin
-    # run on linux host, client project installed using (linux-) brew package:
+    # run on linux host, *Tools client project inst'd as (linux) brew package:
     #   here: /home/linuxbrew/.linuxbrew/bin
+    # run on a linux host, MailFlow Backend installed in Docker container:
+    #   here: /opt/MailFlow/bin
     # run on a macOS host, client project run in development project space:
     #   here: <home>/<dev root>/<project path>/code/bin
     #   where <home> is the developer's ${HOME} folder,
     #   <dev root> is the root folder of all development project spaces
+    #   (~/DevBase as per DesmoDyne Development Project Space Convention)
     #   and <project path> is the root folder of the client project space
-    # echo "here: ${here}"
 
     # NOTE: should get this from conf, but loading conf requires environment...
     # NOTE: Homebrew sets env vars, e.g. HOMEBREW_PREFIX: /usr/local on macOS
@@ -732,45 +740,38 @@ function get_environment
     # TODO: use ${HOMEBREW_PREFIX} with these ?
     paths_to_prod=('/home/linuxbrew/.linuxbrew/bin' '/usr/local/bin')
 
+    # add path if passed
+    if [ -n "${path}" ]
+    then
+        paths_to_prod+=("${path}")
+    fi
+
     # TODO: establish this as conv to
     # print arrays in log output in dev
-    # echo 'paths_to_prod:'
-    # printf '  %s\n' "${paths_to_prod[@]}"
+    echo 'paths_to_prod:'
+    printf '  %s\n' "${paths_to_prod[@]}"
 
     # NOTE: test if string in array:
     # https://stackoverflow.com/a/47541882
     # shellcheck disable=SC2154
     if printf '%s\n' "${paths_to_prod[@]}"  | grep -q "^${here}$"
     then
-        # running in production, possibly installed using brew:
-        # path from bin folder passed as "${here}" to installation root
-        # TODO: verify installation root == ${HOMEBREW_PREFIX} (if set)
-        path_to_inst_root='..'
-
         environment='production'
-        root_path="$(realpath "${here}/${path_to_inst_root}")"
 
     elif grep -qE "${re_dev}" <<< "${here}"
     then
-        # running in development:
-        # path from bin folder passed as "${here}" to dev project root
-        path_to_proj_root='../..'
-
         environment='development'
-        root_path="$(realpath "${here}/${path_to_proj_root}")"
 
     else
         # TODO: introduce convention on unset json props:
         # null ? empty string ? not present at all ?
         environment='UNKNOWN'
-        # TODO: jo prints this as 'null'
-        root_path=''
     fi
 
     # TODO: are extra empty lines and | jq '.' really always helpful ?
     echo
     echo "${dd_bashlib_marker_start}"
-    jo environment="${environment}" root_path="${root_path}" | jq '.'
+    jo environment="${environment}" | jq '.'
     echo "${dd_bashlib_marker_end}"
     # TODO: this seems to be ignored
     echo
