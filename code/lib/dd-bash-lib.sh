@@ -648,7 +648,7 @@ function get_conf_file_arg
 #     dd_bashlib_marker_end
 #      ... (other output) ...
 # Returns:
-#   0 if function succeeded, 1 otherwise
+#   0 if function succeeded, 1 otherwise, e.g. when environment is UNKNOWN
 #
 # Sample code:
 #   # call the function with current folder as ${here} argument
@@ -757,15 +757,18 @@ function get_environment
     if printf '%s\n' "${paths_to_prod[@]}"  | grep -q "^${here}$"
     then
         environment='production'
+        exit_code=0
 
     elif grep -qE "${re_dev}" <<< "${here}"
     then
         environment='development'
+        exit_code=0
 
     else
         # TODO: introduce convention on unset json props:
         # null ? empty string ? not present at all ?
         environment='UNKNOWN'
+        exit_code=1
     fi
 
     # TODO: are extra empty lines and | jq '.' really always helpful ?
@@ -776,7 +779,7 @@ function get_environment
     # TODO: this seems to be ignored
     echo
 
-    return 0
+    return "${exit_code}"
 }
 
 
