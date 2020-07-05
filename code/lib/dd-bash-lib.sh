@@ -625,11 +625,17 @@ function get_conf_file_arg
 # -----------------------------------------------------------------------------
 # determine if client is running in development or production environment
 #
+# NOTE: testing well-known brew installation bin paths works for *Tools
+# scripts installed (or symlinked) to those paths, but does not work for
+# project scripts which are installed to e.g. /opt/MailFlow/bin;
+# those projects need to pass a suitable folder as second optional parameter
+#
 # Globals:
 #   dd_bashlib_marker_start - global BashLib constant to mark start of output
 #   dd_bashlib_marker_end   - global BashLib constant to mark end of output
 # Arguments:
 #   ${1} / here - folder that client project is calling this function from
+#   ${2} / path - (optional) folder to consider in test for production paths
 # Prints to stdout:
 #   json object, wrapped in start and end marker lines, with properties
 #     environment: development|production|UNKNOWN
@@ -680,21 +686,26 @@ function get_environment
     # TODO: align this with get_conf_file_arg / usage
     # TODO: merge this with -z "${path}" below
 
-    if [ $# -ne 1 ]
+    if [ $# -ne 1 ] && [ ${#} -ne 2 ]
     then
         # get function name: https://stackoverflow.com/a/1835958
-        echo "Usage: ${FUNCNAME[0]} <path>" 2>&1
+        echo "Usage: ${FUNCNAME[0]} <here> [<path>]" 2>&1
         return 1
     fi
 
     # TODO: validate arguments
+    # TODO: get dev path as arg ?
 
-    # path to client tool folder
-    path="${1}"
+    # path to client tool folder:
+    # "here" from client perspective
+    here="${1}"
 
-    if [ -z "${path}" ]
+    # (optional) client production path
+    path="${2:-}"
+
+    if [ -z "${here}" ]
     then
-        echo "Usage: ${FUNCNAME[0]} <path>" 2>&1
+        echo "Usage: ${FUNCNAME[0]} <here>" 2>&1
         return 1
     fi
 
@@ -731,6 +742,12 @@ function get_environment
     # paths that indicate a production context
     # TODO: use ${HOMEBREW_PREFIX} with these ?
     paths_to_prod=('/home/linuxbrew/.linuxbrew/bin' '/usr/local/bin')
+
+    # add path if passed
+    if [ -n "${path}" ]
+    then
+        paths_to_prod+=("${path}")
+    fi
 
     # TODO: establish this as conv to
     # print arrays in log output in dev
