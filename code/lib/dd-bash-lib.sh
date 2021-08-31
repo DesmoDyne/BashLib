@@ -111,6 +111,7 @@ function configure_platform
     case "${OSTYPE}" in
         darwin*)
             echo 'configure platform: OK'
+            cp='gcp'
             date='gdate'
             grep='ggrep'
             readlink='greadlink'
@@ -119,6 +120,8 @@ function configure_platform
             ;;
         linux-*)
             echo 'configure platform: OK'
+            # shellcheck disable=SC2034
+            cp='cp'
             # shellcheck disable=SC2034
             date='date'
             # shellcheck disable=SC2034
