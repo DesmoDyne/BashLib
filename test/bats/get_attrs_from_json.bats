@@ -97,15 +97,7 @@ function setup
   [ "${output}" = "${err_msg_1}"$'\n'"${last_err}" ]
 }
 
-@test '#03 - get_attrs_from_json with two arguments fails, prints an error' {
-
-  run get_attrs_from_json 'first_arg' 'second_arg'
-
-  [ "${status}" -eq 1 ]
-  [ "${output}" = "${err_msg_1}"$'\n'"${last_err}" ]
-}
-
-@test '#04 - get_attrs_from_json with four arguments fails, prints an error' {
+@test '#03 - get_attrs_from_json with four arguments fails, prints an error' {
 
   run get_attrs_from_json 'first_arg' 'second_arg' 'third_arg' 'fourth_arg'
 
@@ -116,7 +108,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test invalid JSON as first argument
 
-@test '#05 - get_attrs_from_json with invalid JSON as first argument fails, prints an error' {
+@test '#04 - get_attrs_from_json with invalid JSON as first argument fails, prints an error' {
 
   run get_attrs_from_json '{ "key": ' 'second_arg' 'third_arg'
 
@@ -129,7 +121,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test wrong type of second argument
 
-@test '#06 - get_attrs_from_json with string as second argument fails, prints an error' {
+@test '#05 - get_attrs_from_json with string as second argument fails, prints an error' {
 
   run get_attrs_from_json "${json_01}" 'second_arg' 'third_arg'
 
@@ -137,7 +129,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_err}" ]
 }
 
-@test '#07 - get_attrs_from_json with integer as second argument fails, prints an error' {
+@test '#06 - get_attrs_from_json with integer as second argument fails, prints an error' {
 
   run get_attrs_from_json "${json_01}" 42 'third_arg'
 
@@ -145,7 +137,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_err}" ]
 }
 
-@test '#08 - get_attrs_from_json with float as second argument fails, prints an error' {
+@test '#07 - get_attrs_from_json with float as second argument fails, prints an error' {
 
   run get_attrs_from_json "${json_01}" 42.23 'third_arg'
 
@@ -156,7 +148,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test wrong type of third argument
 
-@test '#09 - get_attrs_from_json with string as third argument fails, prints an error' {
+@test '#08 - get_attrs_from_json with string as third argument fails, prints an error' {
 
   attrs=()
 
@@ -166,7 +158,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${err_msg_4}"$'\n'"${last_err}" ]
 }
 
-@test '#10 - get_attrs_from_json with integer as third argument fails, prints an error' {
+@test '#09 - get_attrs_from_json with integer as third argument fails, prints an error' {
 
   attrs=()
 
@@ -176,7 +168,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${err_msg_4}"$'\n'"${last_err}" ]
 }
 
-@test '#11 - get_attrs_from_json with float as third argument fails, prints an error' {
+@test '#10 - get_attrs_from_json with float as third argument fails, prints an error' {
 
   attrs=()
 
@@ -193,7 +185,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#12 - get_attrs_from_json with empty arguments succeeds, prints expected output' {
+@test '#11 - get_attrs_from_json with empty arguments succeeds, prints expected output' {
 
   # NOTE: empty string is not recognized
   # as function argument, so use single space
@@ -207,7 +199,18 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${second_line}"$'\n'"${third_line}" ]
 }
 
-@test '#13 - get_attrs_from_json with valid arguments succeeds, prints expected output' {
+@test '#12 - get_attrs_from_json with two valid arguments succeeds, prints expected output' {
+
+  # shellcheck disable=SC2034
+  attrs=('key_01' 'key_02')
+
+  run get_attrs_from_json "${json_02}" attrs
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "${first_line}"$'\n'"${second_line}" ]
+}
+
+@test '#13 - get_attrs_from_json with three valid arguments succeeds, prints expected output' {
 
   # TODO: why does shellcheck report these, but not those above or below ?
 
@@ -222,23 +225,33 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${second_line}"$'\n'"${third_line}" ]
 }
 
-@test '#14 - get_attrs_from_json with valid arguments succeeds, sets variables' {
+@test '#14 - get_attrs_from_json with two valid arguments succeeds, sets variables' {
 
   attrs=('key_01' 'key_02')
-  opt_attrs=('key_03')
 
   # NOTE: no 'run'
-  get_attrs_from_json "${json_02}" attrs opt_attrs
+  get_attrs_from_json "${json_02}" attrs
 
   # shellcheck disable=SC2154
   [ "${key_01}" = 'value 01' ]
   # shellcheck disable=SC2154
   [ "${key_02}" = 'value 02' ]
+}
+
+@test '#15 - get_attrs_from_json with three valid arguments succeeds, sets variables' {
+
+  attrs=('key_01' 'key_02')
+  opt_attrs=('key_03')
+
+  get_attrs_from_json "${json_02}" attrs opt_attrs
+
+  [ "${key_01}" = 'value 01' ]
+  [ "${key_02}" = 'value 02' ]
   # shellcheck disable=SC2154
   [ "${key_03}" = 'value 03' ]
 }
 
-@test '#15 - get_attrs_from_json with missing attribute fails, prints expected output' {
+@test '#16 - get_attrs_from_json with missing attribute fails, prints expected output' {
 
   # TODO: why does shellcheck report these, but not those above ?
 
