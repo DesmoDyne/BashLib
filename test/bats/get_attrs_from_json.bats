@@ -61,7 +61,6 @@ function setup
     # shellcheck disable=SC1090
     if output="$(source "${path_to_library}" 2>&1)"
     then
-        # shellcheck disable=SC1090
         source "${path_to_library}"
     else
         echo "${output}"
@@ -201,7 +200,6 @@ function setup
 
 @test '#12 - get_attrs_from_json with two valid arguments succeeds, prints expected output' {
 
-  # shellcheck disable=SC2034
   attrs=('key_01' 'key_02')
 
   run get_attrs_from_json "${json_02}" attrs
@@ -212,11 +210,7 @@ function setup
 
 @test '#13 - get_attrs_from_json with three valid arguments succeeds, prints expected output' {
 
-  # TODO: why does shellcheck report these, but not those above or below ?
-
-  # shellcheck disable=SC2034
   attrs=('key_01' 'key_02')
-  # shellcheck disable=SC2034
   opt_attrs=('key_03')
 
   run get_attrs_from_json "${json_02}" attrs opt_attrs
@@ -253,7 +247,7 @@ function setup
 
 @test '#16 - get_attrs_from_json with missing attribute fails, prints expected output' {
 
-  # TODO: why does shellcheck report these, but not those above ?
+  # TODO: why does shellcheck report these here, but not above ?
 
   # shellcheck disable=SC2034
   attrs=('key_01' 'key_04')

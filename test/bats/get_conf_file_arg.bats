@@ -70,7 +70,6 @@ function setup
     # shellcheck disable=SC1090
     if output="$(source "${path_to_library}" 2>&1)"
     then
-        # shellcheck disable=SC1090
         source "${path_to_library}"
     else
         echo "${output}"
@@ -178,7 +177,7 @@ function teardown
 @test '#08 - get_conf_file_arg with valid file succeeds, sets conf_file global variable' {
 
   # make sure global variable is not already set
-  # shellcheck disable=SC2154
+  # shellcheck disable=SC2030
   [ -z "${conf_file}" ]
 
   get_conf_file_arg "${file_2}"
@@ -188,6 +187,7 @@ function teardown
 
 @test '#09 - get_conf_file_arg with valid file succeeds, sets conf_file to argument' {
 
+  # shellcheck disable=SC2031
   [ -z "${conf_file}" ]
 
   get_conf_file_arg "${file_2}"

@@ -34,7 +34,6 @@ function setup
     # shellcheck disable=SC1090
     if output="$(source "${path_to_library}" 2>&1)"
     then
-        # shellcheck disable=SC1090
         source "${path_to_library}"
     else
         echo "${output}"
@@ -89,11 +88,11 @@ function setup
 
   configure_platform
 
-  # shellcheck disable=SC2154
+  # shellcheck disable=SC2030
   [ -n "${grep}"  ]
-  # shellcheck disable=SC2154
+  # shellcheck disable=SC2030
   [ -n "${sed}"   ]
-  # shellcheck disable=SC2154
+  # shellcheck disable=SC2030
   [ -n "${xargs}" ]
 }
 

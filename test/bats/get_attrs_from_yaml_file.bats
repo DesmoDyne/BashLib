@@ -50,6 +50,7 @@ function setup
     # error message 4
     # TODO: this is no longer needed; not removing for now as that would
     # require re-numbering loads of error messages that follow this one
+    # shellcheck disable=SC2034
     err_msg_4='input YAML file is empty'
 
     # error message 5
@@ -118,7 +119,6 @@ function setup
     # shellcheck disable=SC1090
     if output="$(source "${path_to_library}" 2>&1)"
     then
-        # shellcheck disable=SC1090
         source "${path_to_library}"
     else
         echo "${output}"
@@ -317,11 +317,7 @@ function teardown
 
 @test '#16 - get_attrs_from_yaml_file with three valid arguments succeeds, prints expected output' {
 
-  # TODO: why does shellcheck report these, but not those above or below ?
-
-  # shellcheck disable=SC2034
   attrs=('key_01' 'key_02')
-  # shellcheck disable=SC2034
   opt_attrs=('key_03')
 
   run get_attrs_from_yaml_file "${valid_file_03}" attrs opt_attrs
@@ -337,7 +333,9 @@ function teardown
   # NOTE: no 'run'
   get_attrs_from_yaml_file "${valid_file_03}" attrs
 
+  # shellcheck disable=SC2154
   [ "${key_01}" = 'value 01' ]
+  # shellcheck disable=SC2154
   [ "${key_02}" = 'value 02' ]
 }
 
@@ -348,17 +346,13 @@ function teardown
 
   get_attrs_from_yaml_file "${valid_file_03}" attrs opt_attrs
 
-  # shellcheck disable=SC2154
   [ "${key_01}" = 'value 01' ]
-  # shellcheck disable=SC2154
   [ "${key_02}" = 'value 02' ]
   # shellcheck disable=SC2154
   [ "${key_03}" = 'value 03' ]
 }
 
 @test '#19 - get_attrs_from_yaml_file with missing attribute fails, prints expected output' {
-
-  # TODO: why does shellcheck report these, but not those above ?
 
   # shellcheck disable=SC2034
   attrs=('key_01' 'key_04')
