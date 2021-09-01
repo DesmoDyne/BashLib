@@ -471,6 +471,8 @@ function get_attrs_from_yaml_file
 
     yaml_file_="${1}"
 
+    # TODO: update this for yq 4
+
     # NOTE: yq does not handle errors nor log output upon errors very well:
     # for example, if the YAML file to load does not exist, it prints e.g.
     #   Error: open <filename>: no such file or directory
@@ -494,7 +496,7 @@ function get_attrs_from_yaml_file
     # NOTE: this essentially converts YAML to JSON
     echo -n 'load YAML file and convert to JSON: '
     # shellcheck disable=SC2154
-    if output="$(yq read "${yaml_file_}" --tojson 2>&1)"
+    if output="$(yq eval "${yaml_file_}" --output-format json 2>&1)"
     then
         echo 'OK'
         json_="${output}"
