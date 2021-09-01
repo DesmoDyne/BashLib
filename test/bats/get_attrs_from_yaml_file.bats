@@ -110,7 +110,10 @@ function setup
     exp_out_02="${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_8}"$'\n'"${last_err}"
 
     # expected output 03
-    exp_out_03="${line_01}"$'\n'"${line_02}"$'\n'"${line_03}"$'\n'"${line_04}"
+    exp_out_03="${line_01}"$'\n'"${line_02}"$'\n'"${line_03}"
+
+    # expected output 04
+    exp_out_04="${line_01}"$'\n'"${line_02}"$'\n'"${line_03}"$'\n'"${line_04}"
 
     # shellcheck disable=SC1090
     if output="$(source "${path_to_library}" 2>&1)"
@@ -181,15 +184,7 @@ function teardown
   [ "${output}" = "${err_msg_1}"$'\n'"${last_err}" ]
 }
 
-@test '#03 - get_attrs_from_yaml_file with two arguments fails, prints an error' {
-
-  run get_attrs_from_yaml_file 'first_arg' 'second_arg'
-
-  [ "${status}" -eq 1 ]
-  [ "${output}" = "${err_msg_1}"$'\n'"${last_err}" ]
-}
-
-@test '#04 - get_attrs_from_yaml_file with four arguments fails, prints an error' {
+@test '#03 - get_attrs_from_yaml_file with four arguments fails, prints an error' {
 
   run get_attrs_from_yaml_file 'first_arg' 'second_arg' 'third_arg' 'fourth_arg'
 
@@ -200,7 +195,7 @@ function teardown
 # ------------------------------------------------------------------------------
 # test invalid YAML file as first argument
 
-@test '#05 - get_attrs_from_yaml_file with nonexistent YAML file as first argument fails, prints an error' {
+@test '#04 - get_attrs_from_yaml_file with nonexistent YAML file as first argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${non_exist_filename}" 'second_arg' 'third_arg'
 
@@ -208,7 +203,7 @@ function teardown
   [ "${output}" = "${err_msg_2}"$'\n'"${non_exist_filename}: ${err_msg_3}" ]
 }
 
-@test '#06 - get_attrs_from_yaml_file with inaccessible YAML file as first argument fails, prints an error' {
+@test '#05 - get_attrs_from_yaml_file with inaccessible YAML file as first argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${write_only_file}" 'second_arg' 'third_arg'
 
@@ -216,7 +211,7 @@ function teardown
   [ "${output}" = "${err_msg_2}"$'\n'"${write_only_file}: ${err_msg_5}" ]
 }
 
-@test '#07 - get_attrs_from_yaml_file with invalid YAML file as first argument fails, prints an error' {
+@test '#06 - get_attrs_from_yaml_file with invalid YAML file as first argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${invalid_file}" 'second_arg' 'third_arg'
 
@@ -228,7 +223,7 @@ function teardown
 # ------------------------------------------------------------------------------
 # test wrong type of second argument
 
-@test '#08 - get_attrs_from_yaml_file with string as second argument fails, prints an error' {
+@test '#07 - get_attrs_from_yaml_file with string as second argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${valid_file_01}" 'second_arg' 'third_arg'
 
@@ -236,7 +231,7 @@ function teardown
   [ "${output}" = "${exp_out_01}" ]
 }
 
-@test '#09 - get_attrs_from_yaml_file with integer as second argument fails, prints an error' {
+@test '#08 - get_attrs_from_yaml_file with integer as second argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${valid_file_01}" 42 'third_arg'
 
@@ -244,7 +239,7 @@ function teardown
   [ "${output}" = "${exp_out_01}" ]
 }
 
-@test '#10 - get_attrs_from_yaml_file with float as second argument fails, prints an error' {
+@test '#09 - get_attrs_from_yaml_file with float as second argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${valid_file_01}" 42.23 'third_arg'
 
@@ -255,7 +250,7 @@ function teardown
 # ------------------------------------------------------------------------------
 # test wrong type of third argument
 
-@test '#11 - get_attrs_from_yaml_file with string as third argument fails, prints an error' {
+@test '#10 - get_attrs_from_yaml_file with string as third argument fails, prints an error' {
 
   attrs=()
 
@@ -265,7 +260,7 @@ function teardown
   [ "${output}" = "${exp_out_02}" ]
 }
 
-@test '#12 - get_attrs_from_yaml_file with integer as third argument fails, prints an error' {
+@test '#11 - get_attrs_from_yaml_file with integer as third argument fails, prints an error' {
 
   attrs=()
 
@@ -275,7 +270,7 @@ function teardown
   [ "${output}" = "${exp_out_02}" ]
 }
 
-@test '#13 - get_attrs_from_yaml_file with float as third argument fails, prints an error' {
+@test '#12 - get_attrs_from_yaml_file with float as third argument fails, prints an error' {
 
   attrs=()
 
@@ -288,7 +283,7 @@ function teardown
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#14 - get_attrs_from_yaml_file with empty YAML file as first argument succeeds, prints expected output' {
+@test '#13 - get_attrs_from_yaml_file with empty YAML file as first argument succeeds, prints expected output' {
 
   attrs=()
   opt_attrs=()
@@ -296,10 +291,10 @@ function teardown
   run get_attrs_from_yaml_file "${empty_file}" attrs opt_attrs
 
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${exp_out_03}" ]
+  [ "${output}" = "${exp_out_04}" ]
 }
 
-@test '#15 - get_attrs_from_yaml_file with empty arguments succeeds, prints expected output' {
+@test '#14 - get_attrs_from_yaml_file with empty arguments succeeds, prints expected output' {
 
   attrs=()
   opt_attrs=()
@@ -307,10 +302,20 @@ function teardown
   run get_attrs_from_yaml_file "${valid_file_01}" attrs opt_attrs
 
   [ "${status}" -eq 0 ]
+  [ "${output}" = "${exp_out_04}" ]
+}
+
+@test '#15 - get_attrs_from_yaml_file with two valid arguments succeeds, prints expected output' {
+
+  attrs=('key_01' 'key_02')
+
+  run get_attrs_from_yaml_file "${valid_file_03}" attrs
+
+  [ "${status}" -eq 0 ]
   [ "${output}" = "${exp_out_03}" ]
 }
 
-@test '#16 - get_attrs_from_yaml_file with valid arguments succeeds, prints expected output' {
+@test '#16 - get_attrs_from_yaml_file with three valid arguments succeeds, prints expected output' {
 
   # TODO: why does shellcheck report these, but not those above or below ?
 
@@ -322,15 +327,25 @@ function teardown
   run get_attrs_from_yaml_file "${valid_file_03}" attrs opt_attrs
 
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${exp_out_03}" ]
+  [ "${output}" = "${exp_out_04}" ]
 }
 
-@test '#17 - get_attrs_from_yaml_file with valid arguments succeeds, sets variables' {
+@test '#17 - get_attrs_from_yaml_file with two valid arguments succeeds, sets variables' {
+
+  attrs=('key_01' 'key_02')
+
+  # NOTE: no 'run'
+  get_attrs_from_yaml_file "${valid_file_03}" attrs
+
+  [ "${key_01}" = 'value 01' ]
+  [ "${key_02}" = 'value 02' ]
+}
+
+@test '#18 - get_attrs_from_yaml_file with three valid arguments succeeds, sets variables' {
 
   attrs=('key_01' 'key_02')
   opt_attrs=('key_03')
 
-  # NOTE: no 'run'
   get_attrs_from_yaml_file "${valid_file_03}" attrs opt_attrs
 
   # shellcheck disable=SC2154
@@ -341,7 +356,7 @@ function teardown
   [ "${key_03}" = 'value 03' ]
 }
 
-@test '#18 - get_attrs_from_yaml_file with missing attribute fails, prints expected output' {
+@test '#19 - get_attrs_from_yaml_file with missing attribute fails, prints expected output' {
 
   # TODO: why does shellcheck report these, but not those above ?
 

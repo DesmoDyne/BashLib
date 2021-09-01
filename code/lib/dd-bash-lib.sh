@@ -459,20 +459,24 @@ function get_attrs_from_json
 # Arguments:
 #   yaml_file - absolute or relative path to YAML file to extract from
 #   attrs     - string array with names of mandatory attributes to extract
-#   opt_attrs - string array with names of optional attributes to extract
+#   opt_attrs - (optional) string array with names of optional attrs to extract
 # Returns:
 #   0 if all mandatory (and no, some or all optional) attributes
 #   were extracted from YAML file into global variables; 1 otherwise
 #
 # Sample code:
-#   yaml_file='path/to/file.yaml'
+#   yaml_file='path/to/some_file.yaml'
 #   attrs=('key_01' 'key_02')
 #   opt_attrs=('key_03')
-#   get_attrs_from_yaml_file yaml_file attrs opt_attrs
+#   get_attrs_from_yaml_file "${yaml_file}" attrs opt_attrs
+#
+#   yaml_file='path/to/another_file.yaml'
+#   attrs=('key_01' 'key_02')
+#   get_attrs_from_yaml_file "${yaml_file}" attrs
 
 function get_attrs_from_yaml_file
 {
-    if [ "${#}" -ne 3 ]
+    if [ "${#}" -ne 2 ] && [ "${#}" -ne 3 ]
     then
         msg='ERROR: wrong number of arguments'$'\n'
         msg+='please see function code for usage and sample code'
