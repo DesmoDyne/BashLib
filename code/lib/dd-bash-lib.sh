@@ -351,7 +351,7 @@ function extend_path
 #   json="{ 'key_01': 'value 01', 'key_02': 'value 02', 'key_03': 'value 03' }"
 #   attrs=('key_01' 'key_02')
 #   opt_attrs=('key_03')
-#   get_attrs_from_json json attrs opt_attrs
+#   get_attrs_from_json "${json}" attrs opt_attrs
 
 function get_attrs_from_json
 {
@@ -757,7 +757,7 @@ function get_environment
     # NOTE: test if string in array:
     # https://stackoverflow.com/a/47541882
     # shellcheck disable=SC2154
-    if printf '%s\n' "${paths_to_prod[@]}"  | grep -q "^${here}$"
+    if printf '%s\n' "${paths_to_prod[@]}"  | grep -q "^${here}"
     then
         environment='production'
         exit_code=0
