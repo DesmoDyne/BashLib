@@ -55,6 +55,7 @@ dd_bashlib_marker_start='dd_bashlib_marker_start'
 dd_bashlib_marker_end='dd_bashlib_marker_end'
 
 # TODO: these globals are used internally only; e.g. prepend _ ?
+# TODO: disallow logging with NOT_SET level or setting NOT_SET level
 
 # log levels used by log_* functions, match Python log levels:
 #   https://docs.python.org/3/library/logging.html#levels
@@ -257,6 +258,18 @@ function log_error
 function log_warning
 {
     do_log WARNING "${1}"
+}
+
+
+function log_info
+{
+    do_log INFO "${1}"
+}
+
+
+function log_debug
+{
+    do_log DEBUG "${1}"
 }
 
 
