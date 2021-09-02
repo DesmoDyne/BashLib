@@ -133,25 +133,109 @@ function do_log
         # TODO: figure out how to deref array/hash and print it out
 
         # test if log value is an array
-        if [[ "$(declare -p "${log_value}" 2> /dev/null)" =~ "declare -a" ]]
+        if   [[ "$(declare -p "${log_value}" 2> /dev/null)" =~ "declare -a" ]]
         then
-            # shellcheck disable=SC2016
-            msg='ERROR: can not log arrays, please use "${array[*]}"\n'
-            # shellcheck disable=SC2059
-            printf "${msg}" >&2
-            return 1
-        fi
+            # bash indirect expansion: https://unix.stackexchange.com/a/350007
+            # yet another proof that bash is just a sad, broken laughing stock;
+            # even the official documentation is simply useless:
+            #   https://www.gnu.org/software/bash/manual/html_node/ ...
+            #    ... Shell-Parameter-Expansion.html > "${parameter@operator}"
+            # NOTE: `echo "${!ref}"` doesn't seem to care if "${log_value}[@]"
+            # or "${log_value}[*]" is used, same result (yet another bash joke);
+            # printf '%s\n' "${!ref}" with "${log_value}[@]" prints one entry
+            # per line; need to use "${log_value}[*]"
+            ref="${log_value}[*]"
+            printf '%s\n' "${!ref}"
 
-        if [[ "$(declare -p "${log_value}" 2> /dev/null)" =~ "declare -A" ]]
+        elif [[ "$(declare -p "${log_value}" 2> /dev/null)" =~ "declare -A" ]]
         then
-            # shellcheck disable=SC2016
-            msg='ERROR: can not log hashes, please use "${array[@]@K}"\n'
-            # shellcheck disable=SC2059
-            printf "${msg}" >&2
-            return 1
-        fi
+            # NOTE: similar issues as above; also, bash hashes are not sorted:
+            #     ref="${log_value}[@]"
+            #   using echo:
+            #     echo "${!ref}"
+            #   sample log output:
+            #     log message some
+            #   using printf:
+            #     printf '%s\n' "${!ref}"
+            #   sample log output:
+            #     log
+            #     message
+            #     some
+            #   using laughing stock @K syntax
+            #     printf '%s\n' "${!ref@K}"
+            #   sample log output:
+            #     "key 2" "log" "key 3" "message" "key 1" "some" 
+            # 
+            # get hash keys and iterate over them:
+            #   https://unix.stackexchange.com/a/499125
+            #   https://www.shell-tips.com/bash/arrays/#how-to-get-the- ...
+            #    ... keyvalue-pair-of-a-bash-array-obtain-keys-or-indices
+            # bash hackers wiki is completely useless:
+            #   https://wiki.bash-hackers.org/syntax/arrays#metadata
+            #   https://wiki.bash-hackers.org/syntax/arrays#associative_bash_4
+            #   https://wiki.bash-hackers.org/syntax/arrays#indirection
+            # 
+            # bash fails miserably at getting keys from a hash ref;
+            # it doesn't matter if [@] or [*] is used; bash just doesn't care
+            #   ref="${log_value}[@]"
+            #
+            #   printf "%s\n" "${ref[@]}"
+            #   sample log output:
+            #   log_hash[@]
+            #
+            #   printf "%s\n" "${!ref[@]}"
+            #   sample log output:
+            #   0
+            #
+            #   printf "%s\n" "${!ref}"
+            #   sample log output:
+            #   log
+            #   message
+            #   some
+            #
 
-        printf '%s\n' "${log_value}"
+            # the reference is the problem:
+            # using var name from bats test works:
+            #   printf "%s\n" "${!log_hash[@]}"
+            #   sample log output:
+            #   key 2
+            #   key 3
+            #   key 1
+
+            # use the only way available to get the hash contents;
+            # again, it doesn't matter if [@] or [*] is used
+            #   ref="${log_value}[@]"
+            #   printf '%s\n' "${!ref@K}"
+            # sample log output:
+            #   "key 2" "log" "key 3" "message" "key 1" "some"
+
+            ref="${log_value}[@]"
+            hash_str="${!ref@K}"
+            # echo "|${hash_str}|"
+            # sample log output - note the trailing space:
+            # |"key 2" "log" "key 3" "message" "key 1" "some" |
+            sedex='s|"([^"]*)" "([^"]*)" |"\1" "\2"\n|g'
+            # NOTE: can not use "${sed}" in here yet
+            mapfile -t lines < <(gsed -E "${sedex}" <<< "${hash_str}")
+            # for line in "${lines[@]}"
+            # do
+            #     echo "line: ${line}"
+            # done
+            # sample log output - note the trailing empty line:
+            # line: key 2: log
+            # line: key 3: message
+            # line: key 1: some
+            # line: 
+
+            # remove empty lines: https://stackoverflow.com/a/16414489
+            sedex='/^[[:space:]]*$/d'
+            mapfile -t sorted < <(printf '%s\n' "${lines[@]}" \
+                                   | sort | sed "${sedex}")
+            printf "%s\n" "${sorted[*]}"
+
+        else
+            printf '%s\n' "${log_value}"
+        fi
     fi
 
     return 0
