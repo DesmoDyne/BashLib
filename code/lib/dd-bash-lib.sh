@@ -38,11 +38,11 @@
 # TODO: in all func doc, review/align $1, $2, etc. ./. parameter names
 
 
-# treat unset variables and parameters as error for parameter expansion:
+# -----------------------------------------------------------------------------
+# set bash options:
 # https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
-# NOTE: this is a backup safety measure; globals set externally (i.e. by
-# scripts using this library) are tested individually before they are used
 set -o nounset
+set -o pipefail
 
 
 # -----------------------------------------------------------------------------
