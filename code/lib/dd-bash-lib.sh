@@ -242,6 +242,12 @@ function do_log
 }
 
 
+function log_critical
+{
+    do_log CRITICAL "${1}"
+}
+
+
 function set_log_level
 {
     if [ "${#}" -ne 1 ]
