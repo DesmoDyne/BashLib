@@ -84,7 +84,7 @@ declare -i -g dd_bashlib_log_level=30
 # TODO: research/review printing output to stdout ./. stderr
 # TODO: clarify difference if e.g. log level is quoted or not
 
-# NOTE: echo ./. printf:
+# NOTE: as convention, using printf over echo:
 #   https://askubuntu.com/a/467756
 #   https://unix.stackexchange.com/a/77564
 #   https://unix.stackexchange.com/a/65819
@@ -234,7 +234,7 @@ function do_log
 
             ref="${log_value}[@]"
             hash_str="${!ref@K}"
-            # echo "|${hash_str}|"
+            # printf "|%s|" "${hash_str}"
             # sample log output - note the trailing space:
             # |"key 2" "log" "key 3" "message" "key 1" "some" |
             sedex='s|"([^"]*)" "([^"]*)" |"\1" "\2"\n|g'
@@ -250,8 +250,7 @@ function do_log
                     sed='sed'
                     ;;
                 *)
-                    msg+="unsupported operating system: ${OSTYPE}"
-                    echo "${msg}" >&2
+                    printf 'unsupported operating system: %s' "${OSTYPE}" >&2
                     return 1
                     ;;
             esac
@@ -259,7 +258,7 @@ function do_log
             mapfile -t lines < <("${sed}" -E "${sedex}" <<< "${hash_str}")
             # for line in "${lines[@]}"
             # do
-            #     echo "line: ${line}"
+            #     printf 'line: %s' "${line}"
             # done
             # sample log output - note the trailing empty line:
             # line: key 2: log
