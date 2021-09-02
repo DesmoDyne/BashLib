@@ -60,7 +60,7 @@ dd_bashlib_marker_end='dd_bashlib_marker_end'
 # log levels used by log_* functions, match Python log levels:
 #   https://docs.python.org/3/library/logging.html#levels
 # NOTE: need to use -g to declare this at global scope - not for BashLib itself,
-# but for bats unit tests: without -g, code under test doesn't see this variable
+# but for bats unit tests: without -g, unit test code doesn't see this variable
 declare -A -g dd_bashlib_log_levels=([CRITICAL]=50
                                      [ERROR]=40
                                      [WARNING]=30
@@ -108,10 +108,10 @@ function do_log
 {
     if [ "${#}" -ne 2 ]
     then
-        msg='ERROR: wrong number of arguments\n'`
-           `'please see function code for usage and sample code\n'
+        # TODO: using '` ... `' to wrap lines triggers SC2059 - shellcheck bug ?
         # shellcheck disable=SC2059
-        printf "${msg}" >&2
+        printf 'ERROR: wrong number of arguments\n'`
+              `'please see function code for usage and sample code\n' >&2
         return 1
     fi
 
@@ -139,9 +139,7 @@ function do_log
     # see 'declare -A -g dd_bashlib_log_levels' above
     if [ ! -v 'dd_bashlib_log_levels[${log_level}]' ]
     then
-        msg="ERROR: invalid log level '${log_level}'\n"
-        # shellcheck disable=SC2059
-        printf "${msg}" >&2
+        printf "ERROR: invalid log level '%s'\n" "${log_level}" >&2
         return 1
     fi
 
@@ -250,7 +248,7 @@ function do_log
                     sed='sed'
                     ;;
                 *)
-                    printf 'unsupported operating system: %s' "${OSTYPE}" >&2
+                    printf 'unsupported operating system: %s\n' "${OSTYPE}" >&2
                     return 1
                     ;;
             esac
@@ -335,10 +333,9 @@ function set_log_level
 {
     if [ "${#}" -ne 1 ]
     then
-        msg='ERROR: wrong number of arguments\n'`
-           `'please see function code for usage and sample code\n'
         # shellcheck disable=SC2059
-        printf "${msg}" >&2
+        printf 'ERROR: wrong number of arguments\n'`
+              `'please see function code for usage and sample code\n' >&2
         return 1
     fi
 
@@ -347,9 +344,7 @@ function set_log_level
 
     if [ ! -v 'dd_bashlib_log_levels[${log_level}]' ]
     then
-        msg="ERROR: invalid log level '${log_level}'\n"
-        # shellcheck disable=SC2059
-        printf "${msg}" >&2
+        printf "ERROR: invalid log level '%s'\n" "${log_level}" >&2
         return 1
     fi
 

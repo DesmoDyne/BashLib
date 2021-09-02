@@ -246,10 +246,12 @@ function setup
 
   run do_log ${log_level} log_hash_2
 
-  echo
-  echo "status: ${status}"
-  echo 'output:'$'\n'"${output}"
-  echo
+  # NOTE: this is only displayed if test fails
+  # TODO: bats should do print this automatically
+  printf '\n'
+  printf 'status: %s\n'  "${status}"
+  printf 'output:\n%s\n' "${output}"
+  printf '\n'
 
   [ "${status}" -eq 0 ]
   [ "${output}" = '"key 1" "another" "key 2" "test" "key 3" "log" "key 4" "message"' ]
