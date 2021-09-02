@@ -82,6 +82,7 @@ declare -i -g dd_bashlib_log_level=30
 
 # NOTE: based on https://stackoverflow.com/a/42426680
 # TODO: research/review printing output to stdout ./. stderr
+# TODO: clarify difference if e.g. log level is quoted or not
 
 # NOTE: echo ./. printf:
 #   https://askubuntu.com/a/467756
@@ -202,6 +203,12 @@ function do_log
             #   key 2
             #   key 3
             #   key 1
+
+            # TODO: can this be solved using `local -n` ?
+            # local takes the same switches as declare; from 'help declare':
+            #   -n   make NAME a reference to the variable named by its value
+            # local -n log_level="${1}"
+            # local -n log_value="${2}"
 
             # use the only way available to get the hash contents;
             # again, it doesn't matter if [@] or [*] is used
