@@ -248,6 +248,18 @@ function log_critical
 }
 
 
+function log_error
+{
+    do_log ERROR "${1}"
+}
+
+
+function log_warning
+{
+    do_log WARNING "${1}"
+}
+
+
 function set_log_level
 {
     if [ "${#}" -ne 1 ]
