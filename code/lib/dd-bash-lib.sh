@@ -89,6 +89,21 @@ declare -i -g dd_bashlib_log_level=30
 #   https://unix.stackexchange.com/a/77564
 #   https://unix.stackexchange.com/a/65819
 
+
+# print a log message
+#
+# This function is not meant to be used directly; use log_* functions instead.
+#
+# Prerequisites:
+#   Bash 5.1+, uses some weird bash stuff not available in earlier versions
+# Globals:
+#   ${#}, ${1}, ${2} - evaluated to get function arguments
+# Arguments:
+#   log_level - one of the log levels defined in dd_bashlib_log_levels
+#   log_value - value to log: int, float, string, array, hash
+# Returns:
+#   0 if successful; 1 otherwise
+
 function do_log
 {
     if [ "${#}" -ne 2 ]
@@ -250,35 +265,55 @@ function do_log
 }
 
 
+# logging functions
+#
+# These log the value passed with the log level indicated by their name.
+#
+# Globals:
+#   ${1} - evaluated to get function arguments
+# Arguments:
+#   log_value - value to log: int, float, string, array, hash
+# Returns:
+#   0 if successful; 1 otherwise
+#
+# TODO: do these really return an return code ?!?
+
 function log_critical
 {
     do_log CRITICAL "${1}"
 }
-
 
 function log_error
 {
     do_log ERROR "${1}"
 }
 
-
 function log_warning
 {
     do_log WARNING "${1}"
 }
-
 
 function log_info
 {
     do_log INFO "${1}"
 }
 
-
 function log_debug
 {
     do_log DEBUG "${1}"
 }
 
+
+# set log level
+#
+# Sets dd_bashlib_log_level to log level passed as argument.
+#
+# Globals:
+#   ${1} - evaluated to get function arguments
+# Arguments:
+#   log_level - one of the log levels defined in dd_bashlib_log_levels
+# Returns:
+#   0 if successful; 1 otherwise
 
 function set_log_level
 {
