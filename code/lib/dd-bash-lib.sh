@@ -130,10 +130,27 @@ function do_log
 
     if (( dd_bashlib_log_level <= dd_bashlib_log_levels[${log_level}] ))
     then
-        # TODO: test if log value is an array, print accordingly;
-        # can't seem to figure out how to deref an array and print it out
-        # if [[ "$(declare -p "${log_value}" 2> /dev/null)" =~ "declare -a" ]]
-        # TODO: support print associative arrays
+        # TODO: figure out how to deref array/hash and print it out
+
+        # test if log value is an array
+        if [[ "$(declare -p "${log_value}" 2> /dev/null)" =~ "declare -a" ]]
+        then
+            # shellcheck disable=SC2016
+            msg='ERROR: can not log arrays, please use "${array[*]}"\n'
+            # shellcheck disable=SC2059
+            printf "${msg}" >&2
+            return 1
+        fi
+
+        if [[ "$(declare -p "${log_value}" 2> /dev/null)" =~ "declare -A" ]]
+        then
+            # shellcheck disable=SC2016
+            msg='ERROR: can not log hashes, please use "${array[@]@K}"\n'
+            # shellcheck disable=SC2059
+            printf "${msg}" >&2
+            return 1
+        fi
+
         printf '%s\n' "${log_value}"
     fi
 

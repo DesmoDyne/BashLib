@@ -31,6 +31,12 @@ function setup
     # error message 2
     err_msg_2='ERROR: invalid log level'
 
+    # error message 3
+    err_msg_3='ERROR: can not log arrays, please use "${array[*]}"'
+
+    # error message 4
+    err_msg_4='ERROR: can not log hashes, please use "${array[@]@K}"'
+
     # last error line: printed after error message
     last_err='please see function code for usage and sample code'
 
@@ -39,6 +45,9 @@ function setup
 
     # array to log
     log_array=('some' 'log' 'message')
+
+    # hash to log; need to use -g, see comments in do_log
+    declare -A -g log_hash=(['key 1']='some' ['key 2']='log' ['key 3']='message')
 
     # shellcheck disable=SC1090
     if output="$(source "${path_to_library}" 2>&1)"
@@ -81,7 +90,7 @@ function setup
 }
 
 # ------------------------------------------------------------------------------
-# test wrong type and invalid log level as first argument
+# test wrong type and invalid value as first argument: log level
 
 @test '#04 - do_log with integer log level fails, prints an error' {
 
@@ -122,13 +131,34 @@ function setup
 }
 
 
-# NOTE: there isn't / shouldn't be an invalid second argument data type
+# ------------------------------------------------------------------------------
+# test unsupported type as second argument: log value
+
+@test '#07 - do_log with array log value fails, prints an error' {
+
+  log_level=WARNING
+
+  run do_log ${log_level} log_array
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${err_msg_3}" ]
+}
+
+@test '#08 - do_log with hash log value fails, prints an error' {
+
+  log_level=WARNING
+
+  run do_log ${log_level} log_hash
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${err_msg_4}" ]
+}
 
 
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#07 - do_log with log level CRITICAL succeeds, prints log message' {
+@test '#09 - do_log with log level CRITICAL succeeds, prints log message' {
 
   log_level=CRITICAL
 
@@ -138,7 +168,7 @@ function setup
   [ "${output}" = "${log_msg_1}" ]
 }
 
-@test '#08 - do_log with log level ERROR succeeds, prints log message' {
+@test '#10 - do_log with log level ERROR succeeds, prints log message' {
 
   log_level=ERROR
 
@@ -148,7 +178,7 @@ function setup
   [ "${output}" = "${log_msg_1}" ]
 }
 
-@test '#09 - do_log with log level WARNING succeeds, prints log message' {
+@test '#11 - do_log with log level WARNING succeeds, prints log message' {
 
   log_level=WARNING
 
@@ -158,7 +188,7 @@ function setup
   [ "${output}" = "${log_msg_1}" ]
 }
 
-@test '#10 - do_log with log level INFO succeeds, prints nothing' {
+@test '#12 - do_log with log level INFO succeeds, prints nothing' {
 
   log_level=INFO
 
@@ -168,7 +198,7 @@ function setup
   [ "${output}" = '' ]
 }
 
-@test '#11 - do_log with log level DEBUG succeeds, prints nothing' {
+@test '#13 - do_log with log level DEBUG succeeds, prints nothing' {
 
   log_level=DEBUG
 
@@ -178,11 +208,33 @@ function setup
   [ "${output}" = '' ]
 }
 
-@test '#12 - do_log with log level NOTSET succeeds, prints nothing' {
+@test '#14 - do_log with log level NOTSET succeeds, prints nothing' {
 
   log_level=NOTSET
 
   run do_log ${log_level} "${log_msg_1}"
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = '' ]
+}
+
+@test '#15 - do_log with array as string succeeds, prints array' {
+
+  log_level=WARNING
+
+  # TODO: pass array verbatim, e.g.
+  # run do_log ${log_level} log_array
+  run do_log ${log_level} "${log_array[*]}"
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "${log_array[*]}" ]
+}
+
+@test '#16 - do_log with hash as string succeeds, prints hash' {
+
+  log_level=WARNING
+
+  run do_log ${log_level} "${log_hash[@]@K}"
 
   # NOTE: this is only displayed if test fails
   echo
@@ -193,37 +245,5 @@ function setup
   echo 'actual output:'$'\n'"${output}"
 
   [ "${status}" -eq 0 ]
-  [ "${output}" = '' ]
-}
-
-@test '#13 - do_log with log level CRITICAL succeeds, prints array' {
-
-  log_level=CRITICAL
-
-  # TODO: pass array verbatim, e.g.
-  # run do_log ${log_level} log_array
-  run do_log ${log_level} "${log_array[*]}"
-
-  [ "${status}" -eq 0 ]
-  [ "${output}" = "${log_array[*]}" ]
-}
-
-@test '#14 - do_log with log level ERROR succeeds, prints array' {
-
-  log_level=ERROR
-
-  run do_log ${log_level} "${log_array[*]}"
-
-  [ "${status}" -eq 0 ]
-  [ "${output}" = "${log_msg_1}" ]
-}
-
-@test '#15 - do_log with log level WARNING succeeds, prints array' {
-
-  log_level=WARNING
-
-  run do_log ${log_level} "${log_array[*]}"
-
-  [ "${status}" -eq 0 ]
-  [ "${output}" = "${log_msg_1}" ]
+  [ "${output}" = "${log_hash[@]@K}" ]
 }
