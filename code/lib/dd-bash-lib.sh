@@ -434,6 +434,7 @@ function configure_platform
             xargs='xargs'
             ;;
         *)
+            # TODO: review logging, make this easier
             msg="$(printf 'configure platform: ERROR\n'`
                          `'unsupported operating system: %s' "${OSTYPE}")"
             log_critical "${msg}" >&2
@@ -485,13 +486,15 @@ function configure_platform
 
 function extend_path
 {
-    echo 'verify required executables are available in PATH:'
+    log_info 'verify required executables are available in PATH:'
 
     if [ "${#}" -ne 2 ]
     then
-        msg='ERROR: wrong number of arguments'$'\n'
-        msg+='please see function code for usage and sample code'
-        echo "${msg}" >&2
+        # TODO: shellcheck bug ?
+        # shellcheck disable=SC2059
+        msg="$(printf 'ERROR: wrong number of arguments\n'`
+                     `'please see function code for usage and sample code')"
+        log_critical "${msg}" >&2
         return 1
     fi
 
@@ -501,17 +504,19 @@ function extend_path
     # http://fvue.nl/wiki/Bash:_Detect_if_variable_is_an_array
     if ! [[ "$(declare -p "${1}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        msg='ERROR: <req_tools> argument is not an array'$'\n'
-        msg+='please see function code for usage and sample code'
-        echo "${msg}" >&2
+        # shellcheck disable=SC2059
+        msg="$(printf 'ERROR: <req_tools> argument is not an array\n'`
+                     `'please see function code for usage and sample code')"
+        log_critical "${msg}" >&2
         return 1
     fi
 
     if ! [[ "$(declare -p "${2}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        msg='ERROR: <ext_paths> argument is not an array'$'\n'
-        msg+='please see function code for usage and sample code'
-        echo "${msg}" >&2
+        # shellcheck disable=SC2059
+        msg="$(printf 'ERROR: <ext_paths> argument is not an array\n'`
+                     `'please see function code for usage and sample code')"
+        log_critical "${msg}" >&2
         return 1
     fi
 
@@ -556,18 +561,23 @@ function extend_path
             # test if path is already in PATH
             if [[ "${PATH}" = *"${ext_path}"* ]]
             then
-                echo "  WARNING: path ${ext_path} is already in PATH; skip"
+                msg="$(printf '  WARNING: path %s is already in PATH; skip' \
+                                "${ext_path}")"
+                log_warning "${msg}" >&2
                 continue
             fi
 
             # TODO: test if readable / executable ?
             if [ ! -d "${ext_path}" ]
             then
-                echo "  WARNING: folder ${ext_path} does not exist; skip"
+                msg="$(printf '  WARNING: folder %s does not exist; skip' \
+                                "${ext_path}")"
+                log_warning "${msg}" >&2
                 continue
             fi
 
-            echo "  append ${ext_path} to PATH and retry:"
+            msg="$(printf '  append %s to PATH and retry:' "${ext_path}")"
+            log_info "${msg}" >&2
             PATH="${PATH}:${ext_path}"
         fi
 
@@ -589,13 +599,15 @@ function extend_path
             # https://linux.die.net/man/1/bash
             # search for 'command [-pVv] command'
             # TODO: align OK / FAIL in output over all lines
+            # TODO: review logging, support skipping newlines,
+            # then replace echo by printf
             echo -n "  ${req_tool}: "
             if [ -x "$(command -v "${req_tool}")" ]
             then
-                echo 'OK'
+                printf 'OK\n'
                 found_tools_map["${req_tool}"]=true
             else
-                echo 'FAIL'
+                printf 'FAIL\n'
                 found_tools_map["${req_tool}"]=false
             fi
         done
@@ -617,7 +629,7 @@ function extend_path
         fi
     done
 
-    echo
+    printf '\n'
 
     return 1
 }

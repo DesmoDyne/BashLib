@@ -122,9 +122,6 @@ function setup
     # https://github.com/bats-core/bats-core#special-variables
     path_to_library="${BATS_TEST_DIRNAME}/${path_to_proj_root}/${path_to_lut}"
 
-    # first line: function under test always prints this
-    first_line='verify required executables are available in PATH:'
-
     # last line: printed after error message
     last_line='please see function code for usage and sample code'
 
@@ -220,7 +217,7 @@ function teardown
   run extend_path
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
+  [ "${output}" = "${err_msg_1}"$'\n'"${last_line}" ]
 }
 
 @test '#02 - extend_path with one argument fails, prints an error' {
@@ -228,7 +225,7 @@ function teardown
   run extend_path 'first_arg'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
+  [ "${output}" = "${err_msg_1}"$'\n'"${last_line}" ]
 }
 
 @test '#03 - extend_path with three arguments fails, prints an error' {
@@ -236,7 +233,7 @@ function teardown
   run extend_path 'first_arg' 'second_arg' 'third_arg'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
+  [ "${output}" = "${err_msg_1}"$'\n'"${last_line}" ]
 }
 
 # ------------------------------------------------------------------------------
@@ -247,7 +244,7 @@ function teardown
   run extend_path 'first_arg' 'second_arg'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
+  [ "${output}" = "${err_msg_2}"$'\n'"${last_line}" ]
 }
 
 @test '#05 - extend_path with integer as first argument fails, prints an error' {
@@ -255,7 +252,7 @@ function teardown
   run extend_path 42 'second_arg'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
+  [ "${output}" = "${err_msg_2}"$'\n'"${last_line}" ]
 }
 
 @test '#06 - extend_path with float as first argument fails, prints an error' {
@@ -263,7 +260,7 @@ function teardown
   run extend_path 42.23 'second_arg'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
+  [ "${output}" = "${err_msg_2}"$'\n'"${last_line}" ]
 }
 
 # ------------------------------------------------------------------------------
@@ -276,7 +273,7 @@ function teardown
   run extend_path req_tools 'second_arg'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
+  [ "${output}" = "${err_msg_3}"$'\n'"${last_line}" ]
 }
 
 @test '#08 - extend_path with integer as second argument fails, prints an error' {
@@ -286,7 +283,7 @@ function teardown
   run extend_path req_tools 42
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
+  [ "${output}" = "${err_msg_3}"$'\n'"${last_line}" ]
 }
 
 @test '#09 - extend_path with float as second argument fails, prints an error' {
@@ -296,7 +293,7 @@ function teardown
   run extend_path req_tools 42.23
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
+  [ "${output}" = "${err_msg_3}"$'\n'"${last_line}" ]
 }
 
 # ------------------------------------------------------------------------------
@@ -390,7 +387,7 @@ function teardown
   exp_line_2='  this_tool_does_not_exist: FAIL'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
+  [ "${output}" = "${exp_line_2}" ]
 }
 
 @test '#17 - extend_path with nonexistent tool and nonexistent path prints folder warning, fails' {
@@ -404,7 +401,7 @@ function teardown
   exp_line_3='  WARNING: folder this_path_does_not_exist does not exist; skip'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
+  [ "${output}" = "${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
 @test '#18 - extend_path with nonexistent tool and path already in PATH prints path warning, fails' {
@@ -420,7 +417,7 @@ function teardown
   exp_line_3='  WARNING: path /usr/bin is already in PATH; skip'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
+  [ "${output}" = "${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
 @test '#19 - extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, does not change PATH' {
@@ -447,7 +444,7 @@ function teardown
   exp_line_2='  ls: OK'
 
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
+  [ "${output}" = "${exp_line_2}" ]
 }
 
 @test '#21 - extend_path with tool in (unchanged) PATH and path already in PATH succeeds, does not change PATH' {
@@ -472,7 +469,7 @@ function teardown
   exp_line_2='  ls: OK'
 
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
+  [ "${output}" = "${exp_line_2}" ]
 }
 
 @test '#23 - extend_path with tool in (unchanged) PATH and any path succeeds, does not change PATH' {
@@ -497,7 +494,7 @@ function teardown
   exp_line_2='  ls: OK'
 
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
+  [ "${output}" = "${exp_line_2}" ]
 }
 
 @test '#25 - extend_path with two tools in (unchanged) PATH and any path succeeds, does not change PATH' {
@@ -523,7 +520,7 @@ function teardown
   exp_line_3='  ls: OK'
 
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
+  [ "${output}" = "${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
 @test '#27 - extend_path with five tools in (unchanged) PATH and any path succeeds, does not change PATH' {
@@ -553,7 +550,7 @@ function teardown
 
   [ "${status}" -eq 0 ]
 
-  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}"$'\n'
+  exp_out="${exp_line_2}"$'\n'"${exp_line_3}"$'\n'
   exp_out+="${exp_line_4}"$'\n'"${exp_line_5}"$'\n'"${exp_line_6}"
 
   [ "${output}" = "${exp_out}" ]
@@ -574,13 +571,13 @@ function teardown
   run extend_path req_tools ext_paths
 
   exp_line_2='  this_tool_does_not_exist: FAIL'
-  exp_line_3="  append ${folder_1} to PATH and retry:"
+  # NOTE: not used with default log level
+  # exp_line_3="  append ${folder_1} to PATH and retry:"
   exp_line_4='  this_tool_does_not_exist: FAIL'
 
   [ "${status}" -eq 1 ]
 
-  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
-  exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"
+  exp_out="${exp_line_2}"$'\n'"${exp_line_4}"
 
   [ "${output}" = "${exp_out}" ]
 }
@@ -615,13 +612,12 @@ function teardown
   run extend_path req_tools ext_paths
 
   exp_line_2="  ${tool_11}: FAIL"
-  exp_line_3="  append ${folder_1} to PATH and retry:"
+  # exp_line_3="  append ${folder_1} to PATH and retry:"
   exp_line_4="  ${tool_11}: OK"
 
   [ "${status}" -eq 0 ]
 
-  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
-  exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"
+  exp_out="${exp_line_2}"$'\n'"${exp_line_4}"
 
   # NOTE: this is only displayed if test fails
   echo 'expected output:'$'\n'"${exp_out}"
@@ -652,14 +648,13 @@ function teardown
   # TODO: using read in here fails
   exp_line_2="  ${tool_11}: FAIL"
   exp_line_3="  ${tool_12}: FAIL"
-  exp_line_4="  append ${folder_1} to PATH and retry:"
+  # exp_line_4="  append ${folder_1} to PATH and retry:"
   exp_line_5="  ${tool_11}: OK"
   exp_line_6="  ${tool_12}: OK"
 
   [ "${status}" -eq 0 ]
 
-  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
-  exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"$'\n'
+  exp_out="${exp_line_2}"$'\n'"${exp_line_3}"$'\n'
   exp_out+="${exp_line_5}"$'\n'"${exp_line_6}"
 
   [ "${output}" = "${exp_out}" ]
@@ -689,18 +684,16 @@ function teardown
   # TODO: using read in here fails
   exp_line_2="  ${tool_11}: FAIL"
   exp_line_3="  ${tool_21}: FAIL"
-  exp_line_4="  append ${folder_1} to PATH and retry:"
+  # exp_line_4="  append ${folder_1} to PATH and retry:"
   exp_line_5="  ${tool_11}: OK"
   exp_line_6="  ${tool_21}: FAIL"
-  exp_line_7="  append ${folder_2} to PATH and retry:"
+  # exp_line_7="  append ${folder_2} to PATH and retry:"
   exp_line_8="  ${tool_21}: OK"
 
   [ "${status}" -eq 0 ]
 
-  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
-  exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"$'\n'
-  exp_out+="${exp_line_5}"$'\n'"${exp_line_6}"$'\n'
-  exp_out+="${exp_line_7}"$'\n'"${exp_line_8}"
+  exp_out="${exp_line_2}"$'\n'"${exp_line_3}"$'\n'
+  exp_out+="${exp_line_5}"$'\n'"${exp_line_6}"$'\n'"${exp_line_8}"
 
   [ "${output}" = "${exp_out}" ]
 }
