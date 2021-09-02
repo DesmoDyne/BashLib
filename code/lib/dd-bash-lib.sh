@@ -242,6 +242,34 @@ function do_log
 }
 
 
+function set_log_level
+{
+    if [ "${#}" -ne 1 ]
+    then
+        msg='ERROR: wrong number of arguments\n'`
+           `'please see function code for usage and sample code\n'
+        # shellcheck disable=SC2059
+        printf "${msg}" >&2
+        return 1
+    fi
+
+    # NOTE: no quotes
+    local log_level=${1}
+
+    if [ ! -v 'dd_bashlib_log_levels[${log_level}]' ]
+    then
+        msg="ERROR: invalid log level '${log_level}'\n"
+        # shellcheck disable=SC2059
+        printf "${msg}" >&2
+        return 1
+    fi
+
+    dd_bashlib_log_level=dd_bashlib_log_levels[${log_level}]
+
+    return 0
+}
+
+
 # -----------------------------------------------------------------------------
 # test operating system is supported and configure various commonly used tools
 #
