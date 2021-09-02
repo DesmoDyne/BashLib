@@ -238,8 +238,25 @@ function do_log
             # sample log output - note the trailing space:
             # |"key 2" "log" "key 3" "message" "key 1" "some" |
             sedex='s|"([^"]*)" "([^"]*)" |"\1" "\2"\n|g'
-            # NOTE: can not use "${sed}" in here yet
-            mapfile -t lines < <(gsed -E "${sedex}" <<< "${hash_str}")
+
+            # NOTE: can not use "${sed}" in here;
+            # configure_platform has not run yet
+            case "${OSTYPE}" in
+                darwin*)
+                    sed='gsed'
+                    ;;
+                linux-*)
+                    # shellcheck disable=SC2034
+                    sed='sed'
+                    ;;
+                *)
+                    msg+="unsupported operating system: ${OSTYPE}"
+                    echo "${msg}" >&2
+                    return 1
+                    ;;
+            esac
+
+            mapfile -t lines < <("${sed}" -E "${sedex}" <<< "${hash_str}")
             # for line in "${lines[@]}"
             # do
             #     echo "line: ${line}"
