@@ -410,7 +410,7 @@ function configure_platform
 
     case "${OSTYPE}" in
         darwin*)
-            echo 'configure platform: OK'
+            log_info 'configure platform: OK'
             cp='gcp'
             date='gdate'
             grep='ggrep'
@@ -419,7 +419,7 @@ function configure_platform
             xargs='gxargs'
             ;;
         linux-*)
-            echo 'configure platform: OK'
+            log_info 'configure platform: OK'
             # shellcheck disable=SC2034
             cp='cp'
             # shellcheck disable=SC2034
@@ -434,9 +434,9 @@ function configure_platform
             xargs='xargs'
             ;;
         *)
-            msg='configure platform: ERROR'$'\n'
-            msg+="unsupported operating system: ${OSTYPE}"
-            echo "${msg}" >&2
+            msg="$(printf 'configure platform: ERROR\n'`
+                         `'unsupported operating system: %s' "${OSTYPE}")"
+            log_critical "${msg}" >&2
             return 1
             ;;
     esac

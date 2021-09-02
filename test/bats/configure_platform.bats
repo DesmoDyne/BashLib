@@ -74,7 +74,8 @@ function setup
 
   [ "${status}" -eq 0 ]
 
-  exp_out="${out_msg_1}"
+  # NOTE: no output with default log level
+  exp_out=''
 
   [ "${output}" = "${exp_out}" ]
 }
