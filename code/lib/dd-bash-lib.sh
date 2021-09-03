@@ -268,7 +268,9 @@ function _log
             printf "%s\n" "${sorted[*]}"
 
         else
-            printf '%s\n' "${log_value}"
+            # printf 'log_value: #%b#\n' "${log_value}"
+            # NOTE: use %b, not %s to interpret e.g. \n in log_value
+            printf '%b' "${log_value}"
         fi
     fi
 

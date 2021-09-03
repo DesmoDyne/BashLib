@@ -240,7 +240,7 @@ function setup
   [ "${output}" = '"key 1" "some" "key 2" "log" "key 3" "message"' ]
 }
 
-@test '#17 - _log with hash log value succeeds, prints hash' {
+@test '#17 - _log with unsorted hash log value succeeds, prints hash' {
 
   log_level=WARNING
 
@@ -255,4 +255,49 @@ function setup
 
   [ "${status}" -eq 0 ]
   [ "${output}" = '"key 1" "another" "key 2" "test" "key 3" "log" "key 4" "message"' ]
+}
+
+@test '#18 - _log with trailing newline succeeds, prints newline' {
+
+  log_level=WARNING
+
+  run _log ${log_level} "${log_msg_1}"$'\n'
+
+  # NOTE: this is only displayed if test fails
+  # TODO: bats should do print this automatically
+  printf '\n'
+  printf 'status:   %b\n'  "${status}"
+  printf '\n---\n\n'
+  printf 'output:   |%b|\n' "${output}"
+  printf '\n---\n\n'
+  printf 'lines:\n'
+  printf '%s\n' "${lines[@]}"
+  printf '(end of lines output)\n'
+  printf '\n---\n\n'
+  printf 'lines[1]: |%s|\n' "${lines[1]}"
+  printf 'lines[2]: |%s|\n' "${lines[2]}"
+  printf '\n---\n\n'
+  printf 'expected: |%b|' "${log_msg_1}"$'\n'
+  printf '\n'
+
+  # trigger output above even if test succeeds
+  # [ 1 -eq 2 ]
+
+  [ "${status}" -eq 0 ]
+
+  # TODO: bats output seems to drop trailing newlines; possibly related:
+  # https://github.com/bats-core/bats-core/issues/145
+
+  # this succeeds:
+  [ "${output}"   = "${log_msg_1}" ]
+  # however, output should contain the trailing newline,
+  # but this fails:
+  # [ "${output}"   = "${log_msg_1}"$'\n' ]
+
+  # NOTE: use lines for a possibly better way to verify:
+  [ "${lines[0]}" = "${log_msg_1}" ]
+  # along the same lines as above, this succeeds:
+  [ "${#lines[@]}" -eq 1 ]
+  # and this fails:
+  # [ "${#lines[@]}" -eq 2 ]
 }

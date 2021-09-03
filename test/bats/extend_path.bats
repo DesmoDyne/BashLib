@@ -107,6 +107,7 @@
 # TODO: shellcheck parsing is severely messed up in here
 # TODO: permutate over all possible combinations of input arguments ?
 # TODO: pre-define variables often used in tests in setup function
+# TODO: in all bats tests, make use of lines in addition to output
 
 
 function setup
