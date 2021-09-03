@@ -114,7 +114,7 @@ function setup
 
   # NOTE: this fails with .../code/lib/dd-bash-lib.sh: line 98:
   #   42.23: syntax error: invalid arithmetic operator (error token is ".23")
-  # dd-bash-lib.sh@98: if [ ! -v dd_bashlib_log_levels["${log_level}"] ]
+  # dd-bash-lib.sh@98: if [ ! -v _dd_bashlib_log_levels["${log_level}"] ]
   # --> seems like a bash failure to deal with floats used as hash keys
 
   run do_log ${log_level} "${log_msg_1}"

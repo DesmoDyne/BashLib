@@ -54,23 +54,22 @@ dd_bashlib_marker_start='dd_bashlib_marker_start'
 # string to indicate the line after relevant output on stdout
 dd_bashlib_marker_end='dd_bashlib_marker_end'
 
-# TODO: these globals are used internally only; e.g. prepend _ ?
 # TODO: disallow logging with NOT_SET level or setting NOT_SET level
 
 # log levels used by log_* functions, match Python log levels:
 #   https://docs.python.org/3/library/logging.html#levels
 # NOTE: need to use -g to declare this at global scope - not for BashLib itself,
 # but for bats unit tests: without -g, unit test code doesn't see this variable
-declare -A -g dd_bashlib_log_levels=([CRITICAL]=50
-                                     [ERROR]=40
-                                     [WARNING]=30
-                                     [INFO]=20
-                                     [DEBUG]=10
-                                     [NOTSET]=0)
+declare -A -g _dd_bashlib_log_levels=([CRITICAL]=50
+                                      [ERROR]=40
+                                      [WARNING]=30
+                                      [INFO]=20
+                                      [DEBUG]=10
+                                      [NOTSET]=0)
 
 # log level set by default or by set_log_level function
-# TODO: use e.g. dd_bashlib_log_levels[WARNING] for better readability ?
-declare -i -g dd_bashlib_log_level=30
+# TODO: use e.g. _dd_bashlib_log_levels[WARNING] for better readability ?
+declare -i -g _dd_bashlib_log_level=30
 
 
 # -----------------------------------------------------------------------------
@@ -99,7 +98,7 @@ declare -i -g dd_bashlib_log_level=30
 # Globals:
 #   ${#}, ${1}, ${2} - evaluated to get function arguments
 # Arguments:
-#   log_level - one of the log levels defined in dd_bashlib_log_levels
+#   log_level - one of the log levels defined in _dd_bashlib_log_levels
 #   log_value - value to log: int, float, string, array, hash
 # Returns:
 #   0 if successful; 1 otherwise
@@ -123,12 +122,12 @@ function do_log
     # NOTE: print an associative array in bash:
     #   https://unix.stackexchange.com/a/623797
     # bash is getting dumber with every version
-    # printf 'dd_bashlib_log_levels: %s\n' "${dd_bashlib_log_levels[@]@K}"
-    # printf 'dd_bashlib_log_levels[log_level]: %s\n' \
-    #           "${dd_bashlib_log_levels[${log_level}]}"
+    # printf '_dd_bashlib_log_levels: %s\n' "${_dd_bashlib_log_levels[@]@K}"
+    # printf '_dd_bashlib_log_levels[log_level]: %s\n' \
+    #           "${_dd_bashlib_log_levels[${log_level}]}"
     # sample output:
     # log_level: CRITICAL
-    # dd_bashlib_log_levels[log_level]: 50
+    # _dd_bashlib_log_levels[log_level]: 50
     # ERROR "40" INFO "20" NOTSET "0" WARNING "30" CRITICAL "50" DEBUG "10" 
 
     # check if item exists in associative array:
@@ -136,17 +135,15 @@ function do_log
     # use [[ ... ]] or quote expression after -v:
     # https://github.com/koalaman/shellcheck/wiki/SC2208
     # NOTE: without -g, the expression after -v is empty;
-    # see 'declare -A -g dd_bashlib_log_levels' above
-    if [ ! -v 'dd_bashlib_log_levels[${log_level}]' ]
+    # see 'declare -A -g _dd_bashlib_log_levels' above
+    if [ ! -v '_dd_bashlib_log_levels[${log_level}]' ]
     then
         printf "ERROR: invalid log level '%s'\n" "${log_level}" >&2
         return 1
     fi
 
-    if (( dd_bashlib_log_level <= dd_bashlib_log_levels[${log_level}] ))
+    if (( _dd_bashlib_log_level <= _dd_bashlib_log_levels[${log_level}] ))
     then
-        # TODO: figure out how to deref array/hash and print it out
-
         # test if log value is an array
         if   [[ "$(declare -p "${log_value}" 2> /dev/null)" =~ "declare -a" ]]
         then
@@ -320,12 +317,12 @@ function log_debug
 
 # set log level
 #
-# Sets dd_bashlib_log_level to log level passed as argument.
+# Sets _dd_bashlib_log_level to log level passed as argument.
 #
 # Globals:
 #   ${1} - evaluated to get function arguments
 # Arguments:
-#   log_level - one of the log levels defined in dd_bashlib_log_levels
+#   log_level - one of the log levels defined in _dd_bashlib_log_levels
 # Returns:
 #   0 if successful; 1 otherwise
 
@@ -342,13 +339,13 @@ function set_log_level
     # NOTE: no quotes
     local log_level=${1}
 
-    if [ ! -v 'dd_bashlib_log_levels[${log_level}]' ]
+    if [ ! -v '_dd_bashlib_log_levels[${log_level}]' ]
     then
         printf "ERROR: invalid log level '%s'\n" "${log_level}" >&2
         return 1
     fi
 
-    dd_bashlib_log_level=dd_bashlib_log_levels[${log_level}]
+    _dd_bashlib_log_level=_dd_bashlib_log_levels[${log_level}]
 
     return 0
 }

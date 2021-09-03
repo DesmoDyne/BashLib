@@ -117,7 +117,7 @@ function setup
   set_log_level ${log_level}
 
   # shellcheck disable=SC2154
-  [ "${dd_bashlib_log_level}" = "${dd_bashlib_log_levels[CRITICAL]}" ]
+  [ "${_dd_bashlib_log_level}" = "${_dd_bashlib_log_levels[CRITICAL]}" ]
 }
 
 @test '#08 - set_log_level with log level ERROR succeeds, sets log level' {
@@ -126,7 +126,7 @@ function setup
 
   set_log_level ${log_level}
 
-  [ "${dd_bashlib_log_level}" = "${dd_bashlib_log_levels[ERROR]}" ]
+  [ "${_dd_bashlib_log_level}" = "${_dd_bashlib_log_levels[ERROR]}" ]
 }
 
 @test '#09 - set_log_level with log level WARNING succeeds, sets log level' {
@@ -135,7 +135,7 @@ function setup
 
   set_log_level ${log_level}
 
-  [ "${dd_bashlib_log_level}" = "${dd_bashlib_log_levels[WARNING]}" ]
+  [ "${_dd_bashlib_log_level}" = "${_dd_bashlib_log_levels[WARNING]}" ]
 }
 
 @test '#10 - set_log_level with log level INFO succeeds, sets log level' {
@@ -144,7 +144,7 @@ function setup
 
   set_log_level ${log_level}
 
-  [ "${dd_bashlib_log_level}" = "${dd_bashlib_log_levels[INFO]}" ]
+  [ "${_dd_bashlib_log_level}" = "${_dd_bashlib_log_levels[INFO]}" ]
 }
 
 @test '#11 - set_log_level with log level DEBUG succeeds, sets log level' {
@@ -153,7 +153,7 @@ function setup
 
   set_log_level ${log_level}
 
-  [ "${dd_bashlib_log_level}" = "${dd_bashlib_log_levels[DEBUG]}" ]
+  [ "${_dd_bashlib_log_level}" = "${_dd_bashlib_log_levels[DEBUG]}" ]
 }
 
 @test '#12 - set_log_level with log level NOTSET succeeds, sets log level' {
@@ -162,5 +162,5 @@ function setup
 
   set_log_level ${log_level}
 
-  [ "${dd_bashlib_log_level}" = "${dd_bashlib_log_levels[NOTSET]}" ]
+  [ "${_dd_bashlib_log_level}" = "${_dd_bashlib_log_levels[NOTSET]}" ]
 }
