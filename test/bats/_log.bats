@@ -259,6 +259,8 @@ function setup
 
 @test '#18 - _log with trailing newline succeeds, prints newline' {
 
+  skip 'bats drops trailing newlines'
+
   log_level=WARNING
 
   run _log ${log_level} "${log_msg_1}"$'\n'
@@ -289,15 +291,21 @@ function setup
   # https://github.com/bats-core/bats-core/issues/145
 
   # this succeeds:
-  [ "${output}"   = "${log_msg_1}" ]
+  # [ "${output}"   = "${log_msg_1}" ]
   # however, output should contain the trailing newline,
   # but this fails:
-  # [ "${output}"   = "${log_msg_1}"$'\n' ]
+  [ "${output}"   = "${log_msg_1}"$'\n' ]
 
   # NOTE: use lines for a possibly better way to verify:
   [ "${lines[0]}" = "${log_msg_1}" ]
+  # NOTE: bash is too dumb to deal with arrays properly;
+  # bash makes no differerence between an empty line:
+  [ "${lines[1]}" = '' ]
+  # and an array item that does not exist:
+  [ "${lines[2]}" = '' ]
+
   # along the same lines as above, this succeeds:
-  [ "${#lines[@]}" -eq 1 ]
+  # [ "${#lines[@]}" -eq 1 ]
   # and this fails:
-  # [ "${#lines[@]}" -eq 2 ]
+  [ "${#lines[@]}" -eq 2 ]
 }
