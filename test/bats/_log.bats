@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 
-# do_log.bats
+# _log.bats
 #
-# bats unit tests for do_log function from dd-bash-lib.sh
+# bats unit tests for _log function from dd-bash-lib.sh
 #
 # author  : stefan schablowski
 # contact : stefan.schablowski@desmodyne.com
@@ -40,7 +40,7 @@ function setup
     # array to log
     log_array=('some' 'log' 'message')
 
-    # hash to log; need to use -g, see comments in do_log
+    # hash to log; need to use -g, see comments in _log
     declare -A -g log_hash_1=(['key 1']='some'
                               ['key 2']='log'
                               ['key 3']='message')
@@ -68,25 +68,25 @@ function setup
 # ------------------------------------------------------------------------------
 # test wrong number of arguments
 
-@test '#01 - do_log without arguments fails, prints an error' {
+@test '#01 - _log without arguments fails, prints an error' {
 
-  run do_log
-
-  [ "${status}" -eq 1 ]
-  [ "${output}" = "${err_msg_1}"$'\n'"${last_err}" ]
-}
-
-@test '#02 - do_log with one argument fails, prints an error' {
-
-  run do_log 'first_arg'
+  run _log
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${err_msg_1}"$'\n'"${last_err}" ]
 }
 
-@test '#03 - do_log with three arguments fails, prints an error' {
+@test '#02 - _log with one argument fails, prints an error' {
 
-  run do_log 'first_arg' 'second_arg' 'third_arg' 'fourth_arg'
+  run _log 'first_arg'
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${err_msg_1}"$'\n'"${last_err}" ]
+}
+
+@test '#03 - _log with three arguments fails, prints an error' {
+
+  run _log 'first_arg' 'second_arg' 'third_arg' 'fourth_arg'
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${err_msg_1}"$'\n'"${last_err}" ]
@@ -95,18 +95,18 @@ function setup
 # ------------------------------------------------------------------------------
 # test wrong type and invalid value as first argument: log level
 
-@test '#04 - do_log with integer log level fails, prints an error' {
+@test '#04 - _log with integer log level fails, prints an error' {
 
   log_level=1
 
   # NOTE: no quotes
-  run do_log ${log_level} "${log_msg_1}"
+  run _log ${log_level} "${log_msg_1}"
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${err_msg_2} '${log_level}'" ]
 }
 
-@test '#05 - do_log with float log level fails, prints an error' {
+@test '#05 - _log with float log level fails, prints an error' {
 
   skip 'bash fails upon float hash key'
 
@@ -117,17 +117,17 @@ function setup
   # dd-bash-lib.sh@98: if [ ! -v _dd_bashlib_log_levels["${log_level}"] ]
   # --> seems like a bash failure to deal with floats used as hash keys
 
-  run do_log ${log_level} "${log_msg_1}"
+  run _log ${log_level} "${log_msg_1}"
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${err_msg_2} '${log_level}'" ]
 }
 
-@test '#06 - do_log with invalid log level string fails, prints an error' {
+@test '#06 - _log with invalid log level string fails, prints an error' {
 
   log_level='INVALID_LOG_LEVEL'
 
-  run do_log ${log_level} "${log_msg_1}"
+  run _log ${log_level} "${log_msg_1}"
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${err_msg_2} '${log_level}'" ]
@@ -140,111 +140,111 @@ function setup
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#07 - do_log with log level CRITICAL succeeds, prints log message' {
+@test '#07 - _log with log level CRITICAL succeeds, prints log message' {
 
   log_level=CRITICAL
 
-  run do_log ${log_level} "${log_msg_1}"
+  run _log ${log_level} "${log_msg_1}"
 
   [ "${status}" -eq 0 ]
   [ "${output}" = "${log_msg_1}" ]
 }
 
-@test '#08 - do_log with log level ERROR succeeds, prints log message' {
+@test '#08 - _log with log level ERROR succeeds, prints log message' {
 
   log_level=ERROR
 
-  run do_log ${log_level} "${log_msg_1}"
+  run _log ${log_level} "${log_msg_1}"
 
   [ "${status}" -eq 0 ]
   [ "${output}" = "${log_msg_1}" ]
 }
 
-@test '#09 - do_log with log level WARNING succeeds, prints log message' {
+@test '#09 - _log with log level WARNING succeeds, prints log message' {
 
   log_level=WARNING
 
-  run do_log ${log_level} "${log_msg_1}"
+  run _log ${log_level} "${log_msg_1}"
 
   [ "${status}" -eq 0 ]
   [ "${output}" = "${log_msg_1}" ]
 }
 
-@test '#10 - do_log with log level INFO succeeds, prints nothing' {
+@test '#10 - _log with log level INFO succeeds, prints nothing' {
 
   log_level=INFO
 
-  run do_log ${log_level} "${log_msg_1}"
+  run _log ${log_level} "${log_msg_1}"
 
   [ "${status}" -eq 0 ]
   [ "${output}" = '' ]
 }
 
-@test '#11 - do_log with log level DEBUG succeeds, prints nothing' {
+@test '#11 - _log with log level DEBUG succeeds, prints nothing' {
 
   log_level=DEBUG
 
-  run do_log ${log_level} "${log_msg_1}"
+  run _log ${log_level} "${log_msg_1}"
 
   [ "${status}" -eq 0 ]
   [ "${output}" = '' ]
 }
 
-@test '#12 - do_log with log level NOTSET succeeds, prints nothing' {
+@test '#12 - _log with log level NOTSET succeeds, prints nothing' {
 
   log_level=NOTSET
 
-  run do_log ${log_level} "${log_msg_1}"
+  run _log ${log_level} "${log_msg_1}"
 
   [ "${status}" -eq 0 ]
   [ "${output}" = '' ]
 }
 
-@test '#13 - do_log with array as string succeeds, prints array' {
+@test '#13 - _log with array as string succeeds, prints array' {
 
   log_level=WARNING
 
-  run do_log ${log_level} "${log_array[*]}"
+  run _log ${log_level} "${log_array[*]}"
 
   [ "${status}" -eq 0 ]
   [ "${output}" = "${log_array[*]}" ]
 }
 
-@test '#14 - do_log with hash as string succeeds, prints hash' {
+@test '#14 - _log with hash as string succeeds, prints hash' {
 
   log_level=WARNING
 
-  run do_log ${log_level} "${log_hash_1[@]@K}"
+  run _log ${log_level} "${log_hash_1[@]@K}"
 
   [ "${status}" -eq 0 ]
   [ "${output}" = "${log_hash_1[*]@K}" ]
 }
 
-@test '#15 - do_log with array log value succeeds, prints array' {
+@test '#15 - _log with array log value succeeds, prints array' {
 
   log_level=WARNING
 
-  run do_log ${log_level} log_array
+  run _log ${log_level} log_array
 
   [ "${status}" -eq 0 ]
   [ "${output}" = "${log_array[*]}" ]
 }
 
-@test '#16 - do_log with hash log value succeeds, prints hash' {
+@test '#16 - _log with hash log value succeeds, prints hash' {
 
   log_level=WARNING
 
-  run do_log ${log_level} log_hash_1
+  run _log ${log_level} log_hash_1
 
   [ "${status}" -eq 0 ]
   [ "${output}" = '"key 1" "some" "key 2" "log" "key 3" "message"' ]
 }
 
-@test '#17 - do_log with hash log value succeeds, prints hash' {
+@test '#17 - _log with hash log value succeeds, prints hash' {
 
   log_level=WARNING
 
-  run do_log ${log_level} log_hash_2
+  run _log ${log_level} log_hash_2
 
   # NOTE: this is only displayed if test fails
   # TODO: bats should do print this automatically

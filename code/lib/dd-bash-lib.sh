@@ -89,7 +89,7 @@ declare -i -g _dd_bashlib_log_level=30
 #   https://unix.stackexchange.com/a/65819
 
 
-# print a log message
+# internal function to perform the actual printing of a log message
 #
 # This function is not meant to be used directly; use log_* functions instead.
 #
@@ -103,7 +103,7 @@ declare -i -g _dd_bashlib_log_level=30
 # Returns:
 #   0 if successful; 1 otherwise
 
-function do_log
+function _log
 {
     if [ "${#}" -ne 2 ]
     then
@@ -291,27 +291,27 @@ function do_log
 
 function log_critical
 {
-    do_log CRITICAL "${1}"
+    _log CRITICAL "${1}"
 }
 
 function log_error
 {
-    do_log ERROR "${1}"
+    _log ERROR "${1}"
 }
 
 function log_warning
 {
-    do_log WARNING "${1}"
+    _log WARNING "${1}"
 }
 
 function log_info
 {
-    do_log INFO "${1}"
+    _log INFO "${1}"
 }
 
 function log_debug
 {
-    do_log DEBUG "${1}"
+    _log DEBUG "${1}"
 }
 
 

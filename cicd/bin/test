@@ -118,7 +118,7 @@ echo
 echo 'Run tests:'
 
 # NOTE: run single test suite using e.g.
-# bats "${path_to_bats_folder}/do_log.bats"
+# bats "${path_to_bats_folder}/_log.bats"
 
 # bats displays its own output
 # shellcheck disable=SC2154

@@ -86,7 +86,7 @@ function setup
 
   log_level=42.23
 
-  # NOTE: see do_log.bats > @test '#05 ... '
+  # NOTE: see _log.bats > @test '#05 ... '
 
   run set_log_level ${log_level}
 
