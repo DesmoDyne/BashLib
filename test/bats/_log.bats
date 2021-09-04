@@ -309,3 +309,15 @@ function setup
   # and this fails:
   [ "${#lines[@]}" -eq 2 ]
 }
+
+@test '#19 - _log with newlines in log value succeeds, prints newlines' {
+
+  log_level=WARNING
+
+  run _log ${log_level} 'line 1'$'\n''line 2'$'\n''line 3'
+
+  [ "${status}" -eq 0 ]
+  [ "${lines[0]}" = 'line 1' ]
+  [ "${lines[1]}" = 'line 2' ]
+  [ "${lines[2]}" = 'line 3' ]
+}
