@@ -105,7 +105,7 @@ declare -i -g _dd_bashlib_log_level=30
 
 function _log
 {
-    if [ "${#}" -lt 2 ]
+    if [ "${#}" -eq 0 ]
     then
         # TODO: using '` ... `' to wrap lines triggers SC2059 - shellcheck bug ?
         # shellcheck disable=SC2059
