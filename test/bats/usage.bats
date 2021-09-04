@@ -31,7 +31,7 @@ function setup
     #   ... (variable multi-line contents)
     #EOT
 
-    out_msg='Usage: bats-exec-test <config file>'$'\n'
+    out_msg='usage: bats-exec-test <config file>'$'\n'
     out_msg+=$'\n'
     out_msg+='mandatory arguments:'$'\n'
     out_msg+='  config file           absolute path to configuration file'$'\n'
@@ -56,19 +56,17 @@ function setup
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#01 - usage succeeds, prints expected output' {
+@test '#01    - usage succeeds, prints expected output' {
 
-  run usage
+    run usage
 
-  [ "${status}" -eq 0 ]
+    [ "${status}" -eq 0 ]
 
-  exp_out="${out_msg}"
+    exp_out="${out_msg}"
 
-  # NOTE: this is only displayed if test fails
-  echo
-  echo 'expected output:'$'\n'"${exp_out}"
-  echo
-  echo 'actual output:'$'\n'"${output}"
+    # NOTE: this is only displayed if test fails
+    printf "expected output:\n---\n%s\n---\n\n" "${exp_out}"
+    printf "actual output:\n---\n%s\n---\n\n"   "${output}"
 
-  [ "${output}" = "${exp_out}" ]
+    [ "${output}" = "${exp_out}" ]
 }
