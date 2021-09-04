@@ -123,6 +123,10 @@ echo 'Run tests:'
 # bats displays its own output
 # shellcheck disable=SC2154
 bats "${path_to_bats_folder}"
+# bats "${path_to_bats_folder}/_log.bats"
+# bats "${path_to_bats_folder}/configure_platform.bats"
+# bats "${path_to_bats_folder}/extend_path.bats"
+# bats "${path_to_bats_folder}/log_critical.bats"
 exit_code="$?"
 
 if ! popd > /dev/null
