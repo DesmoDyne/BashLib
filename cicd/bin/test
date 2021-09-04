@@ -126,7 +126,12 @@ bats "${path_to_bats_folder}"
 # bats "${path_to_bats_folder}/_log.bats"
 # bats "${path_to_bats_folder}/configure_platform.bats"
 # bats "${path_to_bats_folder}/extend_path.bats"
+# bats "${path_to_bats_folder}/get_attrs_from_json.bats"
+# bats "${path_to_bats_folder}/get_attrs_from_yaml_file.bats"
+# bats "${path_to_bats_folder}/get_conf_file_arg.bats"
 # bats "${path_to_bats_folder}/log_critical.bats"
+# bats "${path_to_bats_folder}/set_log_level.bats"
+# bats "${path_to_bats_folder}/usage.bats"
 exit_code="$?"
 
 if ! popd > /dev/null
