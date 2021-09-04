@@ -281,7 +281,6 @@ function _log
             printf "%s\n" "${sorted[*]}"
 
         else
-            # printf 'log_value: #%b#\n' "${log_value}"
             # NOTE: use %b, not %s to interpret e.g. \n in log_value
             printf '%b' "${log_value}"
         fi
@@ -369,6 +368,7 @@ function set_log_level
 {
     if [ "${#}" -ne 1 ]
     then
+        # TODO: shellcheck bug ?
         # shellcheck disable=SC2059
         printf 'ERROR: wrong number of arguments\n'`
               `'please see function code for usage and sample code\n' >&2
@@ -465,10 +465,8 @@ function configure_platform
             xargs='xargs'
             ;;
         *)
-            # TODO: review logging, make this easier
-            msg="$(printf 'configure platform: ERROR\n'`
-                         `'unsupported operating system: %s' "${OSTYPE}")"
-            log_critical "${msg}" >&2
+            log_critical 'configure platform: ERROR\n'`
+                        `'unsupported operating system: %s\n' "${OSTYPE}" >&2
             return 1
             ;;
     esac
@@ -521,11 +519,8 @@ function extend_path
 
     if [ "${#}" -ne 2 ]
     then
-        # TODO: shellcheck bug ?
-        # shellcheck disable=SC2059
-        msg="$(printf 'ERROR: wrong number of arguments\n'`
-                     `'please see function code for usage and sample code')"
-        log_critical "${msg}" >&2
+        log_critical 'ERROR: wrong number of arguments\n'`
+                    `'please see function code for usage and sample code\n' >&2
         return 1
     fi
 
@@ -535,19 +530,15 @@ function extend_path
     # http://fvue.nl/wiki/Bash:_Detect_if_variable_is_an_array
     if ! [[ "$(declare -p "${1}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        # shellcheck disable=SC2059
-        msg="$(printf 'ERROR: <req_tools> argument is not an array\n'`
-                     `'please see function code for usage and sample code')"
-        log_critical "${msg}" >&2
+        log_critical 'ERROR: <req_tools> argument is not an array\n'`
+                    `'please see function code for usage and sample code\n' >&2
         return 1
     fi
 
     if ! [[ "$(declare -p "${2}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        # shellcheck disable=SC2059
-        msg="$(printf 'ERROR: <ext_paths> argument is not an array\n'`
-                     `'please see function code for usage and sample code')"
-        log_critical "${msg}" >&2
+        log_critical 'ERROR: <ext_paths> argument is not an array\n'`
+                    `'please see function code for usage and sample code\n' >&2
         return 1
     fi
 
@@ -592,23 +583,20 @@ function extend_path
             # test if path is already in PATH
             if [[ "${PATH}" = *"${ext_path}"* ]]
             then
-                msg="$(printf '  WARNING: path %s is already in PATH; skip' \
-                                "${ext_path}")"
-                log_warning "${msg}" >&2
+                log_warning '  WARNING: path %s is already in PATH; skip\n' \
+                                "${ext_path}" >&2
                 continue
             fi
 
             # TODO: test if readable / executable ?
             if [ ! -d "${ext_path}" ]
             then
-                msg="$(printf '  WARNING: folder %s does not exist; skip' \
-                                "${ext_path}")"
-                log_warning "${msg}" >&2
+                log_warning '  WARNING: folder %s does not exist; skip\n' \
+                                "${ext_path}" >&2
                 continue
             fi
 
-            msg="$(printf '  append %s to PATH and retry:' "${ext_path}")"
-            log_info "${msg}" >&2
+            log_info '  append %s to PATH and retry:\n' "${ext_path}" >&2
             PATH="${PATH}:${ext_path}"
         fi
 
@@ -630,15 +618,14 @@ function extend_path
             # https://linux.die.net/man/1/bash
             # search for 'command [-pVv] command'
             # TODO: align OK / FAIL in output over all lines
-            # TODO: review logging, support skipping newlines,
-            # then replace echo by printf
-            echo -n "  ${req_tool}: "
+            # shellcheck disable=SC2059
+            log_info '  %s: ' "${req_tool}"
             if [ -x "$(command -v "${req_tool}")" ]
             then
-                printf 'OK\n'
+                log_info 'OK\n'
                 found_tools_map["${req_tool}"]=true
             else
-                printf 'FAIL\n'
+                log_info 'FAIL\n'
                 found_tools_map["${req_tool}"]=false
             fi
         done
@@ -660,7 +647,7 @@ function extend_path
         fi
     done
 
-    printf '\n'
+    log_info '\n'
 
     return 1
 }
