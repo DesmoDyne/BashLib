@@ -123,6 +123,9 @@ function setup
     # https://github.com/bats-core/bats-core#special-variables
     path_to_library="${BATS_TEST_DIRNAME}/${path_to_proj_root}/${path_to_lut}"
 
+    # first line: function under test always prints this
+    first_line='verify required executables are available in PATH:'
+
     # last line: printed after error message
     last_line='please see function code for usage and sample code'
 
@@ -319,7 +322,7 @@ function teardown
   [ "${path_before}" = "${path_after}" ]
 }
 
-@test '#11 - extend_path with two empty array arguments succeeds, prints expected output' {
+@test '#11 - extend_path with two empty array arguments succeeds, prints nothing' {
 
   req_tools=()
   ext_paths=()
@@ -327,7 +330,7 @@ function teardown
   run extend_path req_tools ext_paths
 
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${first_line}" ]
+  [ "${output}" = '' ]
 }
 
 @test '#12 - extend_path with two empty array arguments (alternate notation) succeeds, does not change PATH' {
@@ -342,7 +345,7 @@ function teardown
   [ "${path_before}" = "${path_after}" ]
 }
 
-@test '#13 - extend_path with two empty array arguments (alternate notation) succeeds, prints expected output' {
+@test '#13 - extend_path with two empty array arguments (alternate notation) succeeds, prints nothing' {
 
   declare -a req_tools=()
   declare -a ext_paths=()
@@ -350,7 +353,7 @@ function teardown
   run extend_path req_tools ext_paths
 
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${first_line}" ]
+  [ "${output}" = '' ]
 }
 
 @test '#14 - extend_path with empty <req_tools> and any path in <ext_paths> succeeds, does not change PATH' {
@@ -365,7 +368,7 @@ function teardown
   [ "${path_before}" = "${path_after}" ]
 }
 
-@test '#15 - extend_path with empty <req_tools> and any path in <ext_paths> succeeds, prints expected output' {
+@test '#15 - extend_path with empty <req_tools> and any path in <ext_paths> succeeds, prints nothing' {
 
   req_tools=()
   ext_paths=('this_path_is_not_used')
@@ -373,7 +376,7 @@ function teardown
   run extend_path req_tools ext_paths
 
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${first_line}" ]
+  [ "${output}" = '' ]
 }
 
 # NOTE: with bats, it is not possible to test if PATH was changed if FUT fails
