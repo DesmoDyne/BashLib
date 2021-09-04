@@ -388,3 +388,16 @@ function setup
   [ "${status}" -eq 0 ]
   [ "${lines[0]}" = 'string 1: message 1 int 1: 42 string 2: message 2 float 1: 42.23 int 2: 23' ]
 }
+
+@test '#26 - _log with assembled format string and string arg succeeds, prints rendered string' {
+
+  log_level=WARNING
+
+  # NOTE: test added to investigate some issue arising in production;
+  # cause was not the string assembling, seems to be entirely transparent
+  run _log ${log_level} 'log message part 1, '`
+                       `'log message part 2: %s\n' 'string 1'
+
+  [ "${status}" -eq 0 ]
+  [ "${lines[0]}" = 'log message part 1, log message part 2: string 1' ]
+}
