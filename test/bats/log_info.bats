@@ -61,7 +61,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#01 - log_info without arguments succeeds, prints nothing' {
+@test '#01    - log_info without arguments succeeds, prints nothing' {
 
   run log_info
 
@@ -69,7 +69,7 @@ function setup
   [ "${output}" = '' ]
 }
 
-@test '#02 - log_info with integer log value succeeds, prints nothing' {
+@test '#02    - log_info with integer log value succeeds, prints nothing' {
 
   log_value=1
 
@@ -79,7 +79,7 @@ function setup
   [ "${output}" = '' ]
 }
 
-@test '#03 - log_info with float log value succeeds, prints nothing' {
+@test '#03    - log_info with float log value succeeds, prints nothing' {
 
   log_value=42.23
 
@@ -89,7 +89,7 @@ function setup
   [ "${output}" = '' ]
 }
 
-@test '#04 - log_info with string log value succeeds, prints nothing' {
+@test '#04    - log_info with string log value succeeds, prints nothing' {
 
   run log_info "${log_msg_1}"
 
@@ -97,7 +97,7 @@ function setup
   [ "${output}" = '' ]
 }
 
-@test '#05 - log_info with array log value succeeds, prints nothing' {
+@test '#05    - log_info with array log value succeeds, prints nothing' {
 
   run log_info log_array
 
@@ -105,7 +105,7 @@ function setup
   [ "${output}" = '' ]
 }
 
-@test '#06 - log_info with hash log message succeeds, prints nothing' {
+@test '#06    - log_info with hash log message succeeds, prints nothing' {
 
   run log_info log_hash_1
 

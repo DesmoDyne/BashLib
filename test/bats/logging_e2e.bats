@@ -41,7 +41,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#01 - log with default level, increase level, log again' {
+@test '#01    - log with default level, increase level, log again' {
 
   run log_critical 'critical message'
 
@@ -98,7 +98,7 @@ function setup
   [ "${output}" = 'debug message' ]
 }
 
-@test '#01 - log with default level, decrease level, log again' {
+@test '#01    - log with default level, decrease level, log again' {
 
   run log_critical 'critical message'
 

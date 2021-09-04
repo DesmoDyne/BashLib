@@ -60,7 +60,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#01 - log_error without arguments succeeds, prints nothing' {
+@test '#01    - log_error without arguments succeeds, prints nothing' {
 
   run log_error
 
@@ -68,7 +68,7 @@ function setup
   [ "${output}" = '' ]
 }
 
-@test '#02 - log_error with integer log value succeeds, prints integer' {
+@test '#02    - log_error with integer log value succeeds, prints integer' {
 
   log_value=1
 
@@ -78,7 +78,7 @@ function setup
   [ "${output}" = ${log_value} ]
 }
 
-@test '#03 - log_error with float log value succeeds, prints float' {
+@test '#03    - log_error with float log value succeeds, prints float' {
 
   log_value=42.23
 
@@ -88,7 +88,7 @@ function setup
   [ "${output}" = ${log_value} ]
 }
 
-@test '#04 - log_error with string log value succeeds, prints string' {
+@test '#04    - log_error with string log value succeeds, prints string' {
 
   run log_error "${log_msg_1}"
 
@@ -96,7 +96,7 @@ function setup
   [ "${output}" = "${log_msg_1}" ]
 }
 
-@test '#05 - log_error with array log value succeeds, prints array' {
+@test '#05    - log_error with array log value succeeds, prints array' {
 
   run log_error log_array
 
@@ -104,7 +104,7 @@ function setup
   [ "${output}" = "${log_array[*]}" ]
 }
 
-@test '#06 - log_error with hash log message succeeds, prints hash' {
+@test '#06    - log_error with hash log message succeeds, prints hash' {
 
   run log_error log_hash_1
 

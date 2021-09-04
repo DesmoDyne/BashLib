@@ -50,7 +50,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test wrong number of arguments
 
-@test '#01 - set_log_level without arguments fails, prints an error' {
+@test '#01    - set_log_level without arguments fails, prints an error' {
 
   run set_log_level
 
@@ -58,7 +58,7 @@ function setup
   [ "${output}" = "${err_msg_1}"$'\n'"${last_err}" ]
 }
 
-@test '#02 - set_log_level with two argument fails, prints an error' {
+@test '#02    - set_log_level with two argument fails, prints an error' {
 
   run set_log_level 'first_arg' 'second_arg'
 
@@ -69,7 +69,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test wrong type and invalid value as first argument: log level
 
-@test '#04 - set_log_level with integer log level fails, prints an error' {
+@test '#04    - set_log_level with integer log level fails, prints an error' {
 
   log_level=1
 
@@ -80,7 +80,7 @@ function setup
   [ "${output}" = "${err_msg_2} '${log_level}'" ]
 }
 
-@test '#05 - set_log_level with float log level fails, prints an error' {
+@test '#05    - set_log_level with float log level fails, prints an error' {
 
   skip 'bash fails upon float hash key'
 
@@ -94,7 +94,7 @@ function setup
   [ "${output}" = "${err_msg_2} '${log_level}'" ]
 }
 
-@test '#06 - set_log_level with invalid log level string fails, prints an error' {
+@test '#06    - set_log_level with invalid log level string fails, prints an error' {
 
   log_level='INVALID_LOG_LEVEL'
 
@@ -108,7 +108,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#07 - set_log_level with log level CRITICAL succeeds, sets log level' {
+@test '#07    - set_log_level with log level CRITICAL succeeds, sets log level' {
 
   log_level=CRITICAL
 
@@ -120,7 +120,7 @@ function setup
   [ "${_dd_bashlib_log_level}" = "${_dd_bashlib_log_levels[CRITICAL]}" ]
 }
 
-@test '#08 - set_log_level with log level ERROR succeeds, sets log level' {
+@test '#08    - set_log_level with log level ERROR succeeds, sets log level' {
 
   log_level=ERROR
 
@@ -129,7 +129,7 @@ function setup
   [ "${_dd_bashlib_log_level}" = "${_dd_bashlib_log_levels[ERROR]}" ]
 }
 
-@test '#09 - set_log_level with log level WARNING succeeds, sets log level' {
+@test '#09    - set_log_level with log level WARNING succeeds, sets log level' {
 
   log_level=WARNING
 
@@ -138,7 +138,7 @@ function setup
   [ "${_dd_bashlib_log_level}" = "${_dd_bashlib_log_levels[WARNING]}" ]
 }
 
-@test '#10 - set_log_level with log level INFO succeeds, sets log level' {
+@test '#10    - set_log_level with log level INFO succeeds, sets log level' {
 
   log_level=INFO
 
@@ -147,7 +147,7 @@ function setup
   [ "${_dd_bashlib_log_level}" = "${_dd_bashlib_log_levels[INFO]}" ]
 }
 
-@test '#11 - set_log_level with log level DEBUG succeeds, sets log level' {
+@test '#11    - set_log_level with log level DEBUG succeeds, sets log level' {
 
   log_level=DEBUG
 
@@ -156,7 +156,7 @@ function setup
   [ "${_dd_bashlib_log_level}" = "${_dd_bashlib_log_levels[DEBUG]}" ]
 }
 
-@test '#12 - set_log_level with log level NOTSET succeeds, sets log level' {
+@test '#12    - set_log_level with log level NOTSET succeeds, sets log level' {
 
   log_level=NOTSET
 

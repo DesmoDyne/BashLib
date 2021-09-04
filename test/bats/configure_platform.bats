@@ -47,7 +47,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test supported operating systems
 
-@test '#01 - configure_platform on unsupported OS fails, prints an error' {
+@test '#01    - configure_platform on unsupported OS fails, prints an error' {
 
   OLD_OSTYPE="${OSTYPE}"
   # shellcheck disable=SC2030
@@ -100,7 +100,7 @@ function setup
 
 # NOTE: see extend_path.bats on running tests with or without 'run'
 
-@test '#03 - configure_platform on supported OS succeeds, sets tool name variables' {
+@test '#03    - configure_platform on supported OS succeeds, sets tool name variables' {
 
   configure_platform
 
@@ -112,7 +112,7 @@ function setup
   [ -n "${xargs}" ]
 }
 
-@test '#04 - configure_platform on supported OS succeeds, sets tool name variables per OS' {
+@test '#04    - configure_platform on supported OS succeeds, sets tool name variables per OS' {
 
   configure_platform
 

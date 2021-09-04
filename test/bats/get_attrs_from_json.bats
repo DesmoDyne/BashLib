@@ -74,7 +74,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test wrong number of arguments
 
-@test '#01 - get_attrs_from_json without arguments fails, prints an error' {
+@test '#01    - get_attrs_from_json without arguments fails, prints an error' {
 
   run get_attrs_from_json
 
@@ -88,7 +88,7 @@ function setup
   [ "${output}" = "${err_msg_1}"$'\n'"${last_err}" ]
 }
 
-@test '#02 - get_attrs_from_json with one argument fails, prints an error' {
+@test '#02    - get_attrs_from_json with one argument fails, prints an error' {
 
   run get_attrs_from_json 'first_arg'
 
@@ -96,7 +96,7 @@ function setup
   [ "${output}" = "${err_msg_1}"$'\n'"${last_err}" ]
 }
 
-@test '#03 - get_attrs_from_json with four arguments fails, prints an error' {
+@test '#03    - get_attrs_from_json with four arguments fails, prints an error' {
 
   run get_attrs_from_json 'first_arg' 'second_arg' 'third_arg' 'fourth_arg'
 
@@ -107,7 +107,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test invalid JSON as first argument
 
-@test '#04 - get_attrs_from_json with invalid JSON as first argument fails, prints an error' {
+@test '#04    - get_attrs_from_json with invalid JSON as first argument fails, prints an error' {
 
   run get_attrs_from_json '{ "key": ' 'second_arg' 'third_arg'
 
@@ -345,7 +345,7 @@ function setup
   [ "${output}" = "${first_line}"$'\n'"${second_line}"$'\n'"${third_line}" ]
 }
 
-@test '#14 - get_attrs_from_json with two valid arguments succeeds, sets variables' {
+@test '#14    - get_attrs_from_json with two valid arguments succeeds, sets variables' {
 
   attrs=('key_01' 'key_02')
 
@@ -358,7 +358,7 @@ function setup
   [ "${key_02}" = 'value 02' ]
 }
 
-@test '#15 - get_attrs_from_json with three valid arguments succeeds, sets variables' {
+@test '#15    - get_attrs_from_json with three valid arguments succeeds, sets variables' {
 
   attrs=('key_01' 'key_02')
   opt_attrs=('key_03')

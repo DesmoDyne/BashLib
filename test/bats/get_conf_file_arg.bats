@@ -97,7 +97,7 @@ function teardown
 # ------------------------------------------------------------------------------
 # test wrong number of arguments
 
-@test '#01 - get_conf_file_arg without arguments fails, prints an error' {
+@test '#01    - get_conf_file_arg without arguments fails, prints an error' {
 
   run get_conf_file_arg
 
@@ -109,7 +109,7 @@ function teardown
   [ "${output}" = "${err_msg_1}"$'\n'"${usage_msg}" ]
 }
 
-@test '#02 - get_conf_file_arg with two arguments fails, prints an error' {
+@test '#02    - get_conf_file_arg with two arguments fails, prints an error' {
 
   run get_conf_file_arg 'first_arg' 'second_arg'
 
@@ -120,7 +120,7 @@ function teardown
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#03 - get_conf_file_arg with empty path fails, prints an error' {
+@test '#03    - get_conf_file_arg with empty path fails, prints an error' {
 
   run get_conf_file_arg ''
 
@@ -128,7 +128,7 @@ function teardown
   [ "${output}" = "${err_msg_1}"$'\n'"${usage_msg}" ]
 }
 
-@test '#04 - get_conf_file_arg with nonexistent path fails, prints an error' {
+@test '#04    - get_conf_file_arg with nonexistent path fails, prints an error' {
 
   run get_conf_file_arg 'this_path_does_not_exist'
 
@@ -139,7 +139,7 @@ function teardown
   [ "${output}" = "${exp_out}" ]
 }
 
-@test '#05 - get_conf_file_arg with unreadable file fails, prints an error' {
+@test '#05    - get_conf_file_arg with unreadable file fails, prints an error' {
 
   run get_conf_file_arg "${file_1}"
 
@@ -150,7 +150,7 @@ function teardown
   [ "${output}" = "${exp_out}" ]
 }
 
-@test '#06 - get_conf_file_arg with folder path fails, prints an error' {
+@test '#06    - get_conf_file_arg with folder path fails, prints an error' {
 
   run get_conf_file_arg "${folder_1}"
 
@@ -185,7 +185,7 @@ function teardown
 
 # NOTE: see extend_path.bats on running tests with or without 'run'
 
-@test '#08 - get_conf_file_arg with valid file succeeds, sets conf_file global variable' {
+@test '#08    - get_conf_file_arg with valid file succeeds, sets conf_file global variable' {
 
   # make sure global variable is not already set
   # shellcheck disable=SC2030
@@ -196,7 +196,7 @@ function teardown
   [ -n "${conf_file}" ]
 }
 
-@test '#09 - get_conf_file_arg with valid file succeeds, sets conf_file to argument' {
+@test '#09    - get_conf_file_arg with valid file succeeds, sets conf_file to argument' {
 
   # shellcheck disable=SC2031
   [ -z "${conf_file}" ]

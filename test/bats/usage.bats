@@ -56,7 +56,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#01 - usage succeeds, prints expected output' {
+@test '#01    - usage succeeds, prints expected output' {
 
     run usage
 

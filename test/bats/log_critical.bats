@@ -60,7 +60,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#01 - log_critical without arguments succeeds, prints nothing' {
+@test '#01    - log_critical without arguments succeeds, prints nothing' {
 
   run log_critical
 
@@ -68,7 +68,7 @@ function setup
   [ "${output}" = '' ]
 }
 
-@test '#02 - log_critical with integer log value succeeds, prints integer' {
+@test '#02    - log_critical with integer log value succeeds, prints integer' {
 
   log_value=1
 
@@ -78,7 +78,7 @@ function setup
   [ "${output}" = ${log_value} ]
 }
 
-@test '#03 - log_critical with float log value succeeds, prints float' {
+@test '#03    - log_critical with float log value succeeds, prints float' {
 
   log_value=42.23
 
@@ -88,7 +88,7 @@ function setup
   [ "${output}" = ${log_value} ]
 }
 
-@test '#04 - log_critical with string log value succeeds, prints string' {
+@test '#04    - log_critical with string log value succeeds, prints string' {
 
   run log_critical "${log_msg_1}"
 
@@ -96,7 +96,7 @@ function setup
   [ "${output}" = "${log_msg_1}" ]
 }
 
-@test '#05 - log_critical with array log value succeeds, prints array' {
+@test '#05    - log_critical with array log value succeeds, prints array' {
 
   run log_critical log_array
 
@@ -104,7 +104,7 @@ function setup
   [ "${output}" = "${log_array[*]}" ]
 }
 
-@test '#06 - log_critical with hash log message succeeds, prints hash' {
+@test '#06    - log_critical with hash log message succeeds, prints hash' {
 
   run log_critical log_hash_1
 

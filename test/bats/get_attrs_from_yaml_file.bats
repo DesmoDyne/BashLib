@@ -162,7 +162,7 @@ function teardown
 # ------------------------------------------------------------------------------
 # test wrong number of arguments
 
-@test '#01 - get_attrs_from_yaml_file without arguments fails, prints an error' {
+@test '#01    - get_attrs_from_yaml_file without arguments fails, prints an error' {
 
   run get_attrs_from_yaml_file
 
@@ -176,7 +176,7 @@ function teardown
   [ "${output}" = "${err_msg_1}"$'\n'"${last_err}" ]
 }
 
-@test '#02 - get_attrs_from_yaml_file with one argument fails, prints an error' {
+@test '#02    - get_attrs_from_yaml_file with one argument fails, prints an error' {
 
   run get_attrs_from_yaml_file 'first_arg'
 
@@ -184,7 +184,7 @@ function teardown
   [ "${output}" = "${err_msg_1}"$'\n'"${last_err}" ]
 }
 
-@test '#03 - get_attrs_from_yaml_file with four arguments fails, prints an error' {
+@test '#03    - get_attrs_from_yaml_file with four arguments fails, prints an error' {
 
   run get_attrs_from_yaml_file 'first_arg' 'second_arg' 'third_arg' 'fourth_arg'
 
@@ -195,7 +195,7 @@ function teardown
 # ------------------------------------------------------------------------------
 # test invalid YAML file as first argument
 
-@test '#04 - get_attrs_from_yaml_file with nonexistent YAML file as first argument fails, prints an error' {
+@test '#04    - get_attrs_from_yaml_file with nonexistent YAML file as first argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${non_exist_filename}" 'second_arg' 'third_arg'
 
@@ -203,7 +203,7 @@ function teardown
   [ "${output}" = "${err_msg_2}"$'\n'"${non_exist_filename}: ${err_msg_3}" ]
 }
 
-@test '#05 - get_attrs_from_yaml_file with inaccessible YAML file as first argument fails, prints an error' {
+@test '#05    - get_attrs_from_yaml_file with inaccessible YAML file as first argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${write_only_file}" 'second_arg' 'third_arg'
 
@@ -211,7 +211,7 @@ function teardown
   [ "${output}" = "${err_msg_2}"$'\n'"${write_only_file}: ${err_msg_5}" ]
 }
 
-@test '#06 - get_attrs_from_yaml_file with invalid YAML file as first argument fails, prints an error' {
+@test '#06    - get_attrs_from_yaml_file with invalid YAML file as first argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${invalid_file}" 'second_arg' 'third_arg'
 
@@ -463,7 +463,7 @@ function teardown
   [ "${output}" = "${exp_out_04}" ]
 }
 
-@test '#17 - get_attrs_from_yaml_file with two valid arguments succeeds, sets variables' {
+@test '#17    - get_attrs_from_yaml_file with two valid arguments succeeds, sets variables' {
 
   attrs=('key_01' 'key_02')
 
@@ -476,7 +476,7 @@ function teardown
   [ "${key_02}" = 'value 02' ]
 }
 
-@test '#18 - get_attrs_from_yaml_file with three valid arguments succeeds, sets variables' {
+@test '#18    - get_attrs_from_yaml_file with three valid arguments succeeds, sets variables' {
 
   attrs=('key_01' 'key_02')
   opt_attrs=('key_03')

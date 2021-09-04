@@ -419,7 +419,7 @@ function teardown
 
 # NOTE: not using 'run' so change to PATH can be tested, see above
 
-@test '#10 - extend_path with two empty array arguments succeeds, does not change PATH' {
+@test '#10    - extend_path with two empty array arguments succeeds, does not change PATH' {
 
   req_tools=()
   ext_paths=()
@@ -462,7 +462,7 @@ function teardown
   [ "${output}" = "${first_line}" ]
 }
 
-@test '#12 - extend_path with two empty array arguments (alternate notation) succeeds, does not change PATH' {
+@test '#12    - extend_path with two empty array arguments (alternate notation) succeeds, does not change PATH' {
 
   declare -a req_tools=()
   declare -a ext_paths=()
@@ -500,7 +500,7 @@ function teardown
   [ "${output}" = "${first_line}" ]
 }
 
-@test '#14 - extend_path with empty <req_tools> and any path in <ext_paths> succeeds, does not change PATH' {
+@test '#14    - extend_path with empty <req_tools> and any path in <ext_paths> succeeds, does not change PATH' {
 
   req_tools=()
   ext_paths=('this_path_is_not_used')
@@ -638,7 +638,7 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
-@test '#19 - extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, does not change PATH' {
+@test '#19    - extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, does not change PATH' {
 
   # TODO: this assumes ls is in PATH (here and below, safe enough for now)
 
@@ -680,7 +680,7 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
-@test '#21 - extend_path with tool in (unchanged) PATH and path already in PATH succeeds, does not change PATH' {
+@test '#21    - extend_path with tool in (unchanged) PATH and path already in PATH succeeds, does not change PATH' {
 
   req_tools=('ls')
   ext_paths=('/usr/bin')
@@ -720,7 +720,7 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
-@test '#23 - extend_path with tool in (unchanged) PATH and any path succeeds, does not change PATH' {
+@test '#23    - extend_path with tool in (unchanged) PATH and any path succeeds, does not change PATH' {
 
   req_tools=('ls')
   ext_paths=('this_path_is_not_used')
@@ -760,7 +760,7 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
-@test '#25 - extend_path with two tools in (unchanged) PATH and any path succeeds, does not change PATH' {
+@test '#25    - extend_path with two tools in (unchanged) PATH and any path succeeds, does not change PATH' {
 
   req_tools=('cat' 'ls')
   ext_paths=('this_path_is_not_used')
@@ -801,7 +801,7 @@ function teardown
   [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
-@test '#27 - extend_path with five tools in (unchanged) PATH and any path succeeds, does not change PATH' {
+@test '#27    - extend_path with five tools in (unchanged) PATH and any path succeeds, does not change PATH' {
 
   req_tools=('cat' 'chmod' 'cp' 'date' 'ls')
   ext_paths=('this_path_is_not_used')
@@ -900,7 +900,7 @@ function teardown
   [ "${output}" = "${exp_out}" ]
 }
 
-@test '#30 - extend_path with existing tool and existing path succeeds, changes PATH' {
+@test '#30    - extend_path with existing tool and existing path succeeds, changes PATH' {
 
   req_tools=("${tool_11}")
   ext_paths=("${folder_1}")
@@ -965,7 +965,7 @@ function teardown
   [ "${output}" = "${exp_out}" ]
 }
 
-@test '#32 - extend_path with two existing tools and existing path succeeds, changes PATH' {
+@test '#32    - extend_path with two existing tools and existing path succeeds, changes PATH' {
 
   req_tools=("${tool_11}" "${tool_12}")
   ext_paths=("${folder_1}")
@@ -1022,7 +1022,7 @@ function teardown
   [ "${output}" = "${exp_out}" ]
 }
 
-@test '#34 - extend_path with two existing tools in two existing path succeeds, changes PATH' {
+@test '#34    - extend_path with two existing tools in two existing path succeeds, changes PATH' {
 
   req_tools=("${tool_11}" "${tool_21}")
   ext_paths=("${folder_1}" "${folder_2}")
