@@ -216,7 +216,7 @@ function teardown
 # ------------------------------------------------------------------------------
 # test wrong number of arguments
 
-@test '#01 - extend_path without arguments fails, prints an error' {
+@test '#01/01 - extend_path without arguments fails, prints an error' {
 
   run extend_path
 
@@ -224,7 +224,19 @@ function teardown
   [ "${output}" = "${err_msg_1}"$'\n'"${last_line}" ]
 }
 
-@test '#02 - extend_path with one argument fails, prints an error' {
+@test '#01/02 - extend_path without arguments fails, prints an error with elevated log level' {
+
+  set_log_level INFO
+
+  run extend_path
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
+}
+
+@test '#02/01 - extend_path with one argument fails, prints an error' {
 
   run extend_path 'first_arg'
 
@@ -232,7 +244,19 @@ function teardown
   [ "${output}" = "${err_msg_1}"$'\n'"${last_line}" ]
 }
 
-@test '#03 - extend_path with three arguments fails, prints an error' {
+@test '#02/02 - extend_path with one argument fails, prints an error with elevated log level' {
+
+  set_log_level INFO
+
+  run extend_path 'first_arg'
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
+}
+
+@test '#03/01 - extend_path with three arguments fails, prints an error' {
 
   run extend_path 'first_arg' 'second_arg' 'third_arg'
 
@@ -240,10 +264,22 @@ function teardown
   [ "${output}" = "${err_msg_1}"$'\n'"${last_line}" ]
 }
 
+@test '#03/02 - extend_path with three arguments fails, prints an error with elevated log level' {
+
+  set_log_level INFO
+
+  run extend_path 'first_arg' 'second_arg' 'third_arg'
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_1}"$'\n'"${last_line}" ]
+}
+
 # ------------------------------------------------------------------------------
 # test wrong type of first argument
 
-@test '#04 - extend_path with string as first argument fails, prints an error' {
+@test '#04/01 - extend_path with string as first argument fails, prints an error' {
 
   run extend_path 'first_arg' 'second_arg'
 
@@ -251,7 +287,19 @@ function teardown
   [ "${output}" = "${err_msg_2}"$'\n'"${last_line}" ]
 }
 
-@test '#05 - extend_path with integer as first argument fails, prints an error' {
+@test '#04/02 - extend_path with string as first argument fails, prints an error with elevated log level' {
+
+  set_log_level INFO
+
+  run extend_path 'first_arg' 'second_arg'
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
+}
+
+@test '#05/01 - extend_path with integer as first argument fails, prints an error' {
 
   run extend_path 42 'second_arg'
 
@@ -259,7 +307,19 @@ function teardown
   [ "${output}" = "${err_msg_2}"$'\n'"${last_line}" ]
 }
 
-@test '#06 - extend_path with float as first argument fails, prints an error' {
+@test '#05/02 - extend_path with integer as first argument fails, prints an error with elevated log level' {
+
+  set_log_level INFO
+
+  run extend_path 42 'second_arg'
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
+}
+
+@test '#06/01 - extend_path with float as first argument fails, prints an error' {
 
   run extend_path 42.23 'second_arg'
 
@@ -267,10 +327,22 @@ function teardown
   [ "${output}" = "${err_msg_2}"$'\n'"${last_line}" ]
 }
 
+@test '#06/02 - extend_path with float as first argument fails, prints an error with elevated log level' {
+
+  set_log_level INFO
+
+  run extend_path 42.23 'second_arg'
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_2}"$'\n'"${last_line}" ]
+}
+
 # ------------------------------------------------------------------------------
 # test wrong type of second argument
 
-@test '#07 - extend_path with string as second argument fails, prints an error' {
+@test '#07/01 - extend_path with string as second argument fails, prints an error' {
 
   req_tools=()
 
@@ -280,7 +352,21 @@ function teardown
   [ "${output}" = "${err_msg_3}"$'\n'"${last_line}" ]
 }
 
-@test '#08 - extend_path with integer as second argument fails, prints an error' {
+@test '#07/02 - extend_path with string as second argument fails, prints an error with elevated log level' {
+
+  req_tools=()
+
+  set_log_level INFO
+
+  run extend_path req_tools 'second_arg'
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
+}
+
+@test '#08/01 - extend_path with integer as second argument fails, prints an error' {
 
   req_tools=()
 
@@ -290,7 +376,21 @@ function teardown
   [ "${output}" = "${err_msg_3}"$'\n'"${last_line}" ]
 }
 
-@test '#09 - extend_path with float as second argument fails, prints an error' {
+@test '#08/02 - extend_path with integer as second argument fails, prints an error with elevated log level' {
+
+  req_tools=()
+
+  set_log_level INFO
+
+  run extend_path req_tools 42
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
+}
+
+@test '#09/01 - extend_path with float as second argument fails, prints an error' {
 
   req_tools=()
 
@@ -298,6 +398,20 @@ function teardown
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${err_msg_3}"$'\n'"${last_line}" ]
+}
+
+@test '#09/02 - extend_path with float as second argument fails, prints an error with elevated log level' {
+
+  req_tools=()
+
+  set_log_level INFO
+
+  run extend_path req_tools 42.23
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_line}" ]
 }
 
 # ------------------------------------------------------------------------------

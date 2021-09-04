@@ -515,7 +515,7 @@ function configure_platform
 
 function extend_path
 {
-    log_info 'verify required executables are available in PATH:'
+    log_info 'verify required executables are available in PATH:\n'
 
     if [ "${#}" -ne 2 ]
     then
