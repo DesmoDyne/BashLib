@@ -27,16 +27,22 @@ function setup
     path_to_library="${BATS_TEST_DIRNAME}/${path_to_proj_root}/${path_to_lut}"
 
     # first line: function under test prints this if successful
-    line_01='load YAML file and convert to JSON: OK'
+    line_01='get attributes from YAML file:'
 
     # second line: function under test prints this if successful
-    line_02='verify input string is valid JSON: OK'
+    line_02='load YAML file and convert to JSON: OK'
 
     # third line: function under test prints this if successful
-    line_03='extract mandatory attributes from JSON string: OK'
+    line_03='get attributes from JSON:'
 
     # fourth line: function under test prints this if successful
-    line_04='extract optional attributes from JSON string: OK'
+    line_04='verify input string is valid JSON: OK'
+
+    # fifth line: function under test prints this if successful
+    line_05='extract mandatory attributes from JSON string: OK'
+
+    # sixth line: function under test prints this if successful
+    line_06='extract optional attributes from JSON string: OK'
 
     # error message 1
     err_msg_1='ERROR: wrong number of arguments'
@@ -105,16 +111,16 @@ function setup
     yaml_03='---'$'\n''key_01: value 01'$'\n''key_02: value 02'$'\n''key_03: value 03'
 
     # expected output 01
-    exp_out_01="${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_7}"$'\n'"${last_err}"
+    exp_out_01="${line_01}"$'\n'"${line_02}"$'\n'"${line_03}"$'\n'"${line_04}"$'\n'"${err_msg_7}"$'\n'"${last_err}"
 
     # expected output 02
-    exp_out_02="${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_8}"$'\n'"${last_err}"
+    exp_out_02="${line_01}"$'\n'"${line_02}"$'\n'"${line_03}"$'\n'"${line_04}"$'\n'"${err_msg_8}"$'\n'"${last_err}"
 
     # expected output 03
-    exp_out_03="${line_01}"$'\n'"${line_02}"$'\n'"${line_03}"
+    exp_out_03="${line_01}"$'\n'"${line_02}"$'\n'"${line_03}"$'\n'"${line_04}"$'\n'"${line_05}"
 
     # expected output 04
-    exp_out_04="${line_01}"$'\n'"${line_02}"$'\n'"${line_03}"$'\n'"${line_04}"
+    exp_out_04="${line_01}"$'\n'"${line_02}"$'\n'"${line_03}"$'\n'"${line_04}"$'\n'"${line_05}"$'\n'"${line_06}"
 
     # shellcheck disable=SC1090
     if output="$(source "${path_to_library}" 2>&1)"
@@ -502,7 +508,7 @@ function teardown
 
   # NOTE: this is only displayed if test fails
   echo
-  echo 'expected output:'$'\n'"${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_9}"$'\n'"${err_msg}"
+  echo 'expected output:'$'\n'"${err_msg_9}"$'\n'"${err_msg}"
   echo
   echo 'actual output:'$'\n'"${output}"
 
@@ -526,5 +532,5 @@ function teardown
   err_msg='Failed to get key_04 attribute from JSON string'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_9}"$'\n'"${err_msg}" ]
+  [ "${output}" = "${line_01}"$'\n'"${line_02}"$'\n'"${line_03}"$'\n'"${line_04}"$'\n'"${err_msg_9}"$'\n'"${err_msg}" ]
 }

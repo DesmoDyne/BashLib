@@ -393,12 +393,15 @@ function log_debug
 
 function set_log_level
 {
+    msg='set log level:'
+
     if [ "${#}" -ne 1 ]
     then
         # TODO: shellcheck bug ?
         # shellcheck disable=SC2059
-        log_error 'ERROR: wrong number of arguments\n'`
-                 `'please see function code for usage and sample code\n' >&2
+        log_error '%s ERROR: wrong number of arguments\n'`
+                 `'please see function code for usage and sample code\n' \
+                  "${msg}" >&2
         return 1
     fi
 
@@ -407,11 +410,14 @@ function set_log_level
 
     if [ ! -v '_dd_bashlib_log_levels[${log_level}]' ]
     then
-        log_error "ERROR: invalid log level '%s'\n" "${log_level}" >&2
+        log_error "%s ERROR: invalid log level '%s'\n" \
+                  "${msg}" "${log_level}" >&2
         return 1
     fi
 
     _dd_bashlib_log_level=_dd_bashlib_log_levels[${log_level}]
+
+    log_info '%s OK' "${msg}"
 
     return 0
 }
@@ -461,14 +467,16 @@ function set_log_level
 
 function configure_platform
 {
-    # http://stackoverflow.com/a/18434831
+    msg='configure platform:'
+
+    # ${OSTYPE}: http://stackoverflow.com/a/18434831
 
     # TODO: shellcheck reports SC2034 on macOS in the linux-*) case,
     # but not for the darwin*) case; review disabling and situation on Linux
 
     case "${OSTYPE}" in
         darwin*)
-            log_info 'configure platform: OK'
+            log_info "%s OK\n" "${msg}"
             cp='gcp'
             date='gdate'
             grep='ggrep'
@@ -477,7 +485,7 @@ function configure_platform
             xargs='gxargs'
             ;;
         linux-*)
-            log_info 'configure platform: OK'
+            log_info "%s OK\n" "${msg}"
             # shellcheck disable=SC2034
             cp='cp'
             # shellcheck disable=SC2034
@@ -492,8 +500,8 @@ function configure_platform
             xargs='xargs'
             ;;
         *)
-            log_error 'configure platform: ERROR\n'`
-                        `'unsupported operating system: %s\n' "${OSTYPE}" >&2
+            log_error '%s ERROR\nunsupported operating system: %s\n' \
+                     "${msg}" "${OSTYPE}" >&2
             return 1
             ;;
     esac
@@ -715,6 +723,8 @@ function extend_path
 
 function get_attrs_from_json
 {
+    log_info 'get attributes from JSON:\n'
+
     if [ "${#}" -ne 2 ] && [ "${#}" -ne 3 ]
     then
         log_error 'ERROR: wrong number of arguments\n'`
@@ -828,6 +838,8 @@ function get_attrs_from_json
 
 function get_attrs_from_yaml_file
 {
+    log_info 'get attributes from YAML file:\n'
+
     if [ "${#}" -ne 2 ] && [ "${#}" -ne 3 ]
     then
         log_error 'ERROR: wrong number of arguments\n'`
@@ -1199,5 +1211,6 @@ EOT
 
 # undo bash option changes so this library can be sourced
 # from a live shell with changing the shell's configuration
-# TODO: test if this works as expected
+# TODO: test if this works as expected - and if required
 set +o nounset
+set +o pipefail

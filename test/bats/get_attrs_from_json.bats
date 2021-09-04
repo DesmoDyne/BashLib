@@ -26,13 +26,16 @@ function setup
     path_to_library="${BATS_TEST_DIRNAME}/${path_to_proj_root}/${path_to_lut}"
 
     # first line: function under test prints this if successful
-    first_line='verify input string is valid JSON: OK'
+    line_01='get attributes from JSON:'
 
     # second line: function under test prints this if successful
-    second_line='extract mandatory attributes from JSON string: OK'
+    line_02='verify input string is valid JSON: OK'
 
     # third line: function under test prints this if successful
-    third_line='extract optional attributes from JSON string: OK'
+    line_03='extract mandatory attributes from JSON string: OK'
+
+    # fourth line: function under test prints this if successful
+    line_04='extract optional attributes from JSON string: OK'
 
     # error message 1
     err_msg_1='ERROR: wrong number of arguments'
@@ -137,7 +140,7 @@ function setup
   set_log_level WARNING
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_err}" ]
+  [ "${output}" = "${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_3}"$'\n'"${last_err}" ]
 }
 
 @test '#06/01 - get_attrs_from_json with integer as second argument fails, prints an error' {
@@ -157,7 +160,7 @@ function setup
   set_log_level WARNING
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_err}" ]
+  [ "${output}" = "${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_3}"$'\n'"${last_err}" ]
 }
 
 @test '#07/01 - get_attrs_from_json with float as second argument fails, prints an error' {
@@ -177,7 +180,7 @@ function setup
   set_log_level WARNING
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_3}"$'\n'"${last_err}" ]
+  [ "${output}" = "${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_3}"$'\n'"${last_err}" ]
 }
 
 # ------------------------------------------------------------------------------
@@ -204,7 +207,7 @@ function setup
   set_log_level WARNING
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_4}"$'\n'"${last_err}" ]
+  [ "${output}" = "${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_4}"$'\n'"${last_err}" ]
 }
 
 @test '#09/01 - get_attrs_from_json with integer as third argument fails, prints an error' {
@@ -228,7 +231,7 @@ function setup
   set_log_level WARNING
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_4}"$'\n'"${last_err}" ]
+  [ "${output}" = "${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_4}"$'\n'"${last_err}" ]
 }
 
 @test '#10/01 - get_attrs_from_json with float as third argument fails, prints an error' {
@@ -252,7 +255,7 @@ function setup
   set_log_level WARNING
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_4}"$'\n'"${last_err}" ]
+  [ "${output}" = "${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_4}"$'\n'"${last_err}" ]
 }
 
 
@@ -292,7 +295,7 @@ function setup
   set_log_level WARNING
 
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${first_line}"$'\n'"${second_line}"$'\n'"${third_line}" ]
+  [ "${output}" = "${line_01}"$'\n'"${line_02}"$'\n'"${line_03}"$'\n'"${line_04}" ]
 }
 
 @test '#12/01 - get_attrs_from_json with two valid arguments succeeds, prints nothing' {
@@ -316,7 +319,7 @@ function setup
   set_log_level WARNING
 
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${first_line}"$'\n'"${second_line}" ]
+  [ "${output}" = "${line_01}"$'\n'"${line_02}"$'\n'"${line_03}" ]
 }
 
 @test '#13/01 - get_attrs_from_json with three valid arguments succeeds, prints nothing' {
@@ -342,7 +345,7 @@ function setup
   set_log_level WARNING
 
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${first_line}"$'\n'"${second_line}"$'\n'"${third_line}" ]
+  [ "${output}" = "${line_01}"$'\n'"${line_02}"$'\n'"${line_03}"$'\n'"${line_04}" ]
 }
 
 @test '#14    - get_attrs_from_json with two valid arguments succeeds, sets variables' {
@@ -408,5 +411,5 @@ function setup
   err_msg='Failed to get key_04 attribute from JSON string'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${first_line}"$'\n'"${err_msg_5}"$'\n'"${err_msg}" ]
+  [ "${output}" = "${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_5}"$'\n'"${err_msg}" ]
 }

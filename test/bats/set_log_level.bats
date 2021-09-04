@@ -26,10 +26,10 @@ function setup
     path_to_library="${BATS_TEST_DIRNAME}/${path_to_proj_root}/${path_to_lut}"
 
     # error message 1
-    err_msg_1='ERROR: wrong number of arguments'
+    err_msg_1='set log level: ERROR: wrong number of arguments'
 
     # error message 2
-    err_msg_2='ERROR: invalid log level'
+    err_msg_2='set log level: ERROR: invalid log level'
 
     # last error line: printed after error message
     last_err='please see function code for usage and sample code'
@@ -107,6 +107,8 @@ function setup
 
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
+
+# TODO: add tests with elevated log level
 
 @test '#07    - set_log_level with log level CRITICAL succeeds, sets log level' {
 
