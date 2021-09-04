@@ -894,13 +894,12 @@ function get_attrs_from_yaml_file
 
 function get_conf_file_arg
 {
-    echo -n 'get configuration file command line argument: '
+    msg='get configuration file command line argument:'
 
     if [ "${#}" -ne 1 ]
     then
-        msg='ERROR'$'\n''wrong number of arguments'$'\n'$'\n'
-        msg+="$(usage)"
-        echo "${msg}" >&2
+        log_error "%s ERROR\nwrong number of arguments\n\n%s\n" \
+                  "${msg}" "$(usage)" >&2
         return 1
     fi
 
@@ -914,16 +913,17 @@ function get_conf_file_arg
         case "${key}" in
             # NOTE: must escape -?, seems to act as wildcard otherwise
             -\?|--help)
-            echo 'HELP'; echo; usage; return 1 ;;
+            # NOTE: would typically use log_info, but help text
+            # should be printed no matter what log level is set
+            # TODO: create log_not_set for these cases ?
+            _log NOT_SET "${msg} HELP\n$(usage)\n"; return 0 ;;
 
             *)
             if [ -z "${conf_file}" ]
             then
                 conf_file="${1}"
             else
-                msg='ERROR'$'\n''wrong number of arguments'$'\n'$'\n'
-                msg+="$(usage)"
-                echo "${msg}" >&2
+                log_error "${msg} ERROR\nwrong number of arguments\n\n$(usage)\n" >&2
                 return 1
             fi
         esac
@@ -935,9 +935,7 @@ function get_conf_file_arg
     # config file is a mandatory command line argument
     if [ -z "${conf_file}" ]
     then
-        msg='ERROR'$'\n''wrong number of arguments'$'\n'$'\n'
-        msg+="$(usage)"
-        echo "${msg}" >&2
+        log_error "${msg} ERROR\nwrong number of arguments\n\n$(usage)\n" >&2
         return 1
     fi
 
@@ -945,26 +943,23 @@ function get_conf_file_arg
 
     if [ ! -e "${conf_file}" ]
     then
-        msg='ERROR'$'\n'"${conf_file}: Path not found"$'\n'
-        echo "${msg}" >&2
+        log_error "${msg} ERROR\n${conf_file}: Path not found\n" >&2
         return 1
     fi
 
     if [ ! -f "${conf_file}" ]
     then
-        msg='ERROR'$'\n'"${conf_file}: Path is not a file"$'\n'
-        echo "${msg}" >&2
+        log_error "${msg} ERROR\n${conf_file}: Path is not a file\n" >&2
         return 1
     fi
 
     if [ ! -r "${conf_file}" ]
     then
-        msg='ERROR'$'\n'"${conf_file}: File is not readable"$'\n'
-        echo "${msg}" >&2
+        log_error "${msg} ERROR\n${conf_file}: File is not readable\n" >&2
         return 1
     fi
 
-    echo 'OK'
+    log_info "${msg} OK"
 
     return 0
 }
