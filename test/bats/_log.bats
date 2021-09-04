@@ -193,7 +193,37 @@ function setup
   [ "${output}" = '' ]
 }
 
-@test '#12 - _log with array as string succeeds, prints array' {
+@test '#12 - _log with integer succeeds, prints integer' {
+
+  log_level=WARNING
+
+  run _log ${log_level} 42
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = 42 ]
+}
+
+@test '#13 - _log with float succeeds, prints float' {
+
+  log_level=WARNING
+
+  run _log ${log_level} 42.23
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = 42.23 ]
+}
+
+@test '#14 - _log with string succeeds, prints string' {
+
+  log_level=WARNING
+
+  run _log ${log_level} "${log_msg_1}"
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "${log_msg_1}" ]
+}
+
+@test '#15 - _log with array as string succeeds, prints array' {
 
   log_level=WARNING
 
@@ -203,7 +233,7 @@ function setup
   [ "${output}" = "${log_array[*]}" ]
 }
 
-@test '#13 - _log with hash as string succeeds, prints hash' {
+@test '#16 - _log with hash as string succeeds, prints hash' {
 
   log_level=WARNING
 
@@ -213,7 +243,7 @@ function setup
   [ "${output}" = "${log_hash_1[*]@K}" ]
 }
 
-@test '#14 - _log with array log value succeeds, prints array' {
+@test '#17 - _log with array log value succeeds, prints array' {
 
   log_level=WARNING
 
@@ -223,7 +253,7 @@ function setup
   [ "${output}" = "${log_array[*]}" ]
 }
 
-@test '#15 - _log with hash log value succeeds, prints hash' {
+@test '#18 - _log with hash log value succeeds, prints hash' {
 
   log_level=WARNING
 
@@ -233,7 +263,7 @@ function setup
   [ "${output}" = '"key 1" "some" "key 2" "log" "key 3" "message"' ]
 }
 
-@test '#16 - _log with unsorted hash log value succeeds, prints hash' {
+@test '#19 - _log with unsorted hash log value succeeds, prints hash' {
 
   log_level=WARNING
 
@@ -250,7 +280,7 @@ function setup
   [ "${output}" = '"key 1" "another" "key 2" "test" "key 3" "log" "key 4" "message"' ]
 }
 
-@test '#17 - _log with trailing newline succeeds, prints newline' {
+@test '#20 - _log with trailing newline succeeds, prints newline' {
 
   skip 'bats drops trailing newlines'
 
@@ -303,7 +333,7 @@ function setup
   [ "${#lines[@]}" -eq 2 ]
 }
 
-@test '#18 - _log with newlines in log value succeeds, prints newlines' {
+@test '#21 - _log with newlines in log value succeeds, prints newlines' {
 
   log_level=WARNING
 
@@ -315,7 +345,8 @@ function setup
   [ "${lines[2]}" = 'line 3' ]
 }
 
-@test '#19 - _log with format string and one string argument succeeds, prints rendered string' {
+
+@test '#22 - _log with format string and one string argument succeeds, prints rendered string' {
 
   log_level=WARNING
 
@@ -325,7 +356,7 @@ function setup
   [ "${lines[0]}" = 'string 1: message 1' ]
 }
 
-@test '#20 - _log with format string and two string arguments succeeds, prints rendered string' {
+@test '#23 - _log with format string and two string arguments succeeds, prints rendered string' {
 
   log_level=WARNING
 
@@ -335,7 +366,7 @@ function setup
   [ "${lines[0]}" = 'string 1: message 1 string 2: message 2' ]
 }
 
-@test '#21 - _log with format string and five string arguments succeeds, prints rendered string' {
+@test '#24 - _log with format string and five string arguments succeeds, prints rendered string' {
 
   log_level=WARNING
 
@@ -347,7 +378,7 @@ function setup
                    `'string 4: message 4 string 5: message 5' ]
 }
 
-@test '#22 - _log with format string and mixed arguments succeeds, prints rendered string' {
+@test '#25 - _log with format string and mixed arguments succeeds, prints rendered string' {
 
   log_level=WARNING
 
