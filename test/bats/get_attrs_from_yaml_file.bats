@@ -223,25 +223,61 @@ function teardown
 # ------------------------------------------------------------------------------
 # test wrong type of second argument
 
-@test '#07 - get_attrs_from_yaml_file with string as second argument fails, prints an error' {
+@test '#07/01 - get_attrs_from_yaml_file with string as second argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${valid_file_01}" 'second_arg' 'third_arg'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${exp_out_01}" ]
+  [ "${output}" = "${err_msg_7}"$'\n'"${last_err}" ]
 }
 
-@test '#08 - get_attrs_from_yaml_file with integer as second argument fails, prints an error' {
+@test '#07/02 - get_attrs_from_yaml_file with string as second argument fails, prints an error with elevated log level' {
 
-  run get_attrs_from_yaml_file "${valid_file_01}" 42 'third_arg'
+  set_log_level INFO
+
+  run get_attrs_from_yaml_file "${valid_file_01}" 'second_arg' 'third_arg'
+
+  set_log_level WARNING
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${exp_out_01}" ]
 }
 
-@test '#09 - get_attrs_from_yaml_file with float as second argument fails, prints an error' {
+@test '#08/01 - get_attrs_from_yaml_file with integer as second argument fails, prints an error' {
+
+  run get_attrs_from_yaml_file "${valid_file_01}" 42 'third_arg'
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${err_msg_7}"$'\n'"${last_err}" ]
+}
+
+@test '#08/02 - get_attrs_from_yaml_file with integer as second argument fails, prints an error with elevated log level' {
+
+  set_log_level INFO
+
+  run get_attrs_from_yaml_file "${valid_file_01}" 42 'third_arg'
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${exp_out_01}" ]
+}
+
+@test '#09/01 - get_attrs_from_yaml_file with float as second argument fails, prints an error' {
 
   run get_attrs_from_yaml_file "${valid_file_01}" 42.23 'third_arg'
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${err_msg_7}"$'\n'"${last_err}" ]
+}
+
+@test '#09/02 - get_attrs_from_yaml_file with float as second argument fails, prints an error with elevated log level' {
+
+  set_log_level INFO
+
+  run get_attrs_from_yaml_file "${valid_file_01}" 42.23 'third_arg'
+
+  set_log_level WARNING
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${exp_out_01}" ]
@@ -250,31 +286,73 @@ function teardown
 # ------------------------------------------------------------------------------
 # test wrong type of third argument
 
-@test '#10 - get_attrs_from_yaml_file with string as third argument fails, prints an error' {
+@test '#10/01 - get_attrs_from_yaml_file with string as third argument fails, prints an error' {
 
   attrs=()
 
   run get_attrs_from_yaml_file "${valid_file_01}" attrs 'third_arg'
 
   [ "${status}" -eq 1 ]
+  [ "${output}" = "${err_msg_8}"$'\n'"${last_err}" ]
+}
+
+@test '#10/02 - get_attrs_from_yaml_file with string as third argument fails, prints an error with elevated log level' {
+
+  attrs=()
+
+  set_log_level INFO
+
+  run get_attrs_from_yaml_file "${valid_file_01}" attrs 'third_arg'
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 1 ]
   [ "${output}" = "${exp_out_02}" ]
 }
 
-@test '#11 - get_attrs_from_yaml_file with integer as third argument fails, prints an error' {
+@test '#11/01 - get_attrs_from_yaml_file with integer as third argument fails, prints an error' {
 
   attrs=()
 
   run get_attrs_from_yaml_file "${valid_file_01}" attrs 42
 
   [ "${status}" -eq 1 ]
+  [ "${output}" = "${err_msg_8}"$'\n'"${last_err}" ]
+}
+
+@test '#11/02 - get_attrs_from_yaml_file with integer as third argument fails, prints an error with elevated log level' {
+
+  attrs=()
+
+  set_log_level INFO
+
+  run get_attrs_from_yaml_file "${valid_file_01}" attrs 42
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 1 ]
   [ "${output}" = "${exp_out_02}" ]
 }
 
-@test '#12 - get_attrs_from_yaml_file with float as third argument fails, prints an error' {
+@test '#12/01 - get_attrs_from_yaml_file with float as third argument fails, prints an error' {
 
   attrs=()
 
   run get_attrs_from_yaml_file "${valid_file_01}" attrs 42.23
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${err_msg_8}"$'\n'"${last_err}" ]
+}
+
+@test '#12/02 - get_attrs_from_yaml_file with float as third argument fails, prints an error with elevated log level' {
+
+  attrs=()
+
+  set_log_level INFO
+
+  run get_attrs_from_yaml_file "${valid_file_01}" attrs 42.23
+
+  set_log_level WARNING
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${exp_out_02}" ]
@@ -283,7 +361,7 @@ function teardown
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#13 - get_attrs_from_yaml_file with empty YAML file as first argument succeeds, prints expected output' {
+@test '#13/01 - get_attrs_from_yaml_file with empty YAML file as first argument succeeds, prints nothing' {
 
   attrs=()
   opt_attrs=()
@@ -291,10 +369,25 @@ function teardown
   run get_attrs_from_yaml_file "${empty_file}" attrs opt_attrs
 
   [ "${status}" -eq 0 ]
+  [ "${output}" = '' ]
+}
+
+@test '#13/02 - get_attrs_from_yaml_file with empty YAML file as first argument succeeds, prints expected output with elevated log level' {
+
+  attrs=()
+  opt_attrs=()
+
+  set_log_level INFO
+
+  run get_attrs_from_yaml_file "${empty_file}" attrs opt_attrs
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 0 ]
   [ "${output}" = "${exp_out_04}" ]
 }
 
-@test '#14 - get_attrs_from_yaml_file with empty arguments succeeds, prints expected output' {
+@test '#14/01 - get_attrs_from_yaml_file with empty arguments succeeds, prints nothing' {
 
   attrs=()
   opt_attrs=()
@@ -302,25 +395,69 @@ function teardown
   run get_attrs_from_yaml_file "${valid_file_01}" attrs opt_attrs
 
   [ "${status}" -eq 0 ]
+  [ "${output}" = '' ]
+}
+
+@test '#14/02 - get_attrs_from_yaml_file with empty arguments succeeds, prints expected output with elevated log level' {
+
+  attrs=()
+  opt_attrs=()
+
+  set_log_level INFO
+
+  run get_attrs_from_yaml_file "${valid_file_01}" attrs opt_attrs
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 0 ]
   [ "${output}" = "${exp_out_04}" ]
 }
 
-@test '#15 - get_attrs_from_yaml_file with two valid arguments succeeds, prints expected output' {
+@test '#15/01 - get_attrs_from_yaml_file with two valid arguments succeeds, prints nothing' {
 
   attrs=('key_01' 'key_02')
 
   run get_attrs_from_yaml_file "${valid_file_03}" attrs
 
   [ "${status}" -eq 0 ]
+  [ "${output}" = '' ]
+}
+
+@test '#15/02 - get_attrs_from_yaml_file with two valid arguments succeeds, prints expected output with elevated log level' {
+
+  attrs=('key_01' 'key_02')
+
+  set_log_level INFO
+
+  run get_attrs_from_yaml_file "${valid_file_03}" attrs
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 0 ]
   [ "${output}" = "${exp_out_03}" ]
 }
 
-@test '#16 - get_attrs_from_yaml_file with three valid arguments succeeds, prints expected output' {
+@test '#16/01 - get_attrs_from_yaml_file with three valid arguments succeeds, prints nothing' {
 
   attrs=('key_01' 'key_02')
   opt_attrs=('key_03')
 
   run get_attrs_from_yaml_file "${valid_file_03}" attrs opt_attrs
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = '' ]
+}
+
+@test '#16/02 - get_attrs_from_yaml_file with three valid arguments succeeds, prints expected output with elevated log level' {
+
+  attrs=('key_01' 'key_02')
+  opt_attrs=('key_03')
+
+  set_log_level INFO
+
+  run get_attrs_from_yaml_file "${valid_file_03}" attrs opt_attrs
+
+  set_log_level WARNING
 
   [ "${status}" -eq 0 ]
   [ "${output}" = "${exp_out_04}" ]
@@ -352,7 +489,7 @@ function teardown
   [ "${key_03}" = 'value 03' ]
 }
 
-@test '#19 - get_attrs_from_yaml_file with missing attribute fails, prints expected output' {
+@test '#19/01 - get_attrs_from_yaml_file with missing attribute fails, prints expected output' {
 
   # shellcheck disable=SC2034
   attrs=('key_01' 'key_04')
@@ -368,6 +505,25 @@ function teardown
   echo 'expected output:'$'\n'"${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_9}"$'\n'"${err_msg}"
   echo
   echo 'actual output:'$'\n'"${output}"
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${err_msg_9}"$'\n'"${err_msg}" ]
+}
+
+@test '#19/02 - get_attrs_from_yaml_file with missing attribute fails, prints expected output with elevated log level' {
+
+  # shellcheck disable=SC2034
+  attrs=('key_01' 'key_04')
+  # shellcheck disable=SC2034
+  opt_attrs=('key_03')
+
+  set_log_level INFO
+
+  run get_attrs_from_yaml_file "${valid_file_02}" attrs opt_attrs
+
+  set_log_level WARNING
+
+  err_msg='Failed to get key_04 attribute from JSON string'
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${line_01}"$'\n'"${line_02}"$'\n'"${err_msg_9}"$'\n'"${err_msg}" ]
