@@ -68,7 +68,7 @@ function setup
   [ "${output}" = "${exp_out}" ]
 }
 
-@test '#02 - configure_platform on supported OS succeeds, prints expected output' {
+@test '#02/01 - configure_platform on supported OS succeeds, prints expected output' {
 
   run configure_platform
 
@@ -76,6 +76,21 @@ function setup
 
   # NOTE: no output with default log level
   exp_out=''
+
+  [ "${output}" = "${exp_out}" ]
+}
+
+@test '#02/02 - configure_platform on supported OS succeeds, prints expected output with elevated log level' {
+
+  set_log_level INFO
+
+  run configure_platform
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 0 ]
+
+  exp_out="${out_msg_1}"
 
   [ "${output}" = "${exp_out}" ]
 }
