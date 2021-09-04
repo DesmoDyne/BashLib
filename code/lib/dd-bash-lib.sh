@@ -1027,7 +1027,7 @@ function get_environment
     if [ $# -ne 1 ] && [ ${#} -ne 2 ]
     then
         # get function name: https://stackoverflow.com/a/1835958
-        echo "Usage: ${FUNCNAME[0]} <here> [<path>]" 2>&1
+        echo "usage: ${FUNCNAME[0]} <here> [<path>]" 2>&1
         return 1
     fi
 
@@ -1043,7 +1043,7 @@ function get_environment
 
     if [ -z "${here}" ]
     then
-        echo "Usage: ${FUNCNAME[0]} <here>" 2>&1
+        echo "usage: ${FUNCNAME[0]} <here>" 2>&1
         return 1
     fi
 
