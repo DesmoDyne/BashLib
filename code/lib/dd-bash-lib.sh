@@ -619,13 +619,13 @@ function extend_path
             # search for 'command [-pVv] command'
             # TODO: align OK / FAIL in output over all lines
             # shellcheck disable=SC2059
-            log_info '  %s: ' "${req_tool}"
+            
             if [ -x "$(command -v "${req_tool}")" ]
             then
-                log_info 'OK\n'
+                log_info  '  %s: OK\n'   "${req_tool}"
                 found_tools_map["${req_tool}"]=true
             else
-                log_info 'FAIL\n'
+                log_error '  %s: FAIL\n' "${req_tool}"
                 found_tools_map["${req_tool}"]=false
             fi
         done
