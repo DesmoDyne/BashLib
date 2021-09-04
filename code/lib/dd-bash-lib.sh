@@ -54,6 +54,7 @@ dd_bashlib_marker_start='dd_bashlib_marker_start'
 # string to indicate the line after relevant output on stdout
 dd_bashlib_marker_end='dd_bashlib_marker_end'
 
+# TODO: NOTSET is not currently used for anything
 # TODO: disallow logging with NOTSET level or setting NOTSET level
 
 # log levels used by log_* functions, match Python log levels:
@@ -104,6 +105,9 @@ declare -i -g _dd_bashlib_log_level=30
 #   log_value - value to log: int, float, string, array, hash
 # Returns:
 #   0 if successful; 1 otherwise
+#
+# Sample code:
+#   _log WARNING 'this is a log message with log level WARNING'
 
 function _log
 {
@@ -333,6 +337,13 @@ function _log
 # Returns:
 #   0 if successful; 1 otherwise
 #
+# Sample code:
+#   log_critical 'this is a log message with log level CRITICAL'
+#   log_error    'this is a log message with log level ERROR'
+#   log_warning  'this is a log message with log level WARNING'
+#   log_info     'this is a log message with log level INFO'
+#   log_debug    'this is a log message with log level DEBUG'
+#
 # TODO: do these really return an return code ?!?
 
 function log_critical
@@ -371,6 +382,14 @@ function log_debug
 #   log_level - one of the log levels defined in _dd_bashlib_log_levels
 # Returns:
 #   0 if successful; 1 otherwise
+#
+# Sample code:
+#   set_log_level CRITICAL
+#   set_log_level ERROR
+#   set_log_level WARNING
+#   set_log_level INFO
+#   set_log_level DEBUG
+#   set_log_level NOTSET  # NOTE: works, but shouldn't be used
 
 function set_log_level
 {
