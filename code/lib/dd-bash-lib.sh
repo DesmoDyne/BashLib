@@ -54,7 +54,7 @@ dd_bashlib_marker_start='dd_bashlib_marker_start'
 # string to indicate the line after relevant output on stdout
 dd_bashlib_marker_end='dd_bashlib_marker_end'
 
-# TODO: disallow logging with NOT_SET level or setting NOT_SET level
+# TODO: disallow logging with NOTSET level or setting NOTSET level
 
 # log levels used by log_* functions, match Python log levels:
 #   https://docs.python.org/3/library/logging.html#levels
@@ -120,6 +120,7 @@ function _log
     local log_level=${1}
 
     # printf 'log_level: %s\n' "${log_level}"
+    # printf '_dd_bashlib_log_level: %s\n' "${_dd_bashlib_log_level}"
     # NOTE: print an associative array in bash:
     #   https://unix.stackexchange.com/a/623797
     # bash is getting dumber with every version
@@ -128,6 +129,7 @@ function _log
     #           "${_dd_bashlib_log_levels[${log_level}]}"
     # sample output:
     # log_level: CRITICAL
+    # _dd_bashlib_log_level: 30
     # _dd_bashlib_log_levels[log_level]: 50
     # ERROR "40" INFO "20" NOTSET "0" WARNING "30" CRITICAL "50" DEBUG "10" 
 
@@ -915,8 +917,8 @@ function get_conf_file_arg
             -\?|--help)
             # NOTE: would typically use log_info, but help text
             # should be printed no matter what log level is set
-            # TODO: create log_not_set for these cases ?
-            _log NOT_SET "${msg} HELP\n$(usage)\n"; return 0 ;;
+            # TODO: create additional log level for such cases ?
+            log_critical "${msg} HELP\n$(usage)\n"; return 0 ;;
 
             *)
             if [ -z "${conf_file}" ]
@@ -1170,7 +1172,7 @@ EOT
 
     # NOTE: would typically use log_info, but help text
     # should be printed no matter what log level is set
-    _log NOT_SET "%s\n" "${msg}"
+    log_critical "%s\n" "${msg}"
 
     return 0
 }
