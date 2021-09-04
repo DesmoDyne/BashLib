@@ -690,29 +690,26 @@ function get_attrs_from_json
 {
     if [ "${#}" -ne 2 ] && [ "${#}" -ne 3 ]
     then
-        msg='ERROR: wrong number of arguments'$'\n'
-        msg+='please see function code for usage and sample code'
-        echo "${msg}" >&2
+        log_error 'ERROR: wrong number of arguments\n'`
+                 `'please see function code for usage and sample code\n'
         return 1
     fi
 
-    echo -n 'verify input string is valid JSON: '
+    msg='verify input string is valid JSON:'
     # https://unix.stackexchange.com/a/76407
     if output="$(jq '.' <<< "${1}" 2>&1)"
     then
-        echo 'OK'
+        log_info  "${msg} OK\n"
     else
-        echo 'ERROR'
-        echo "${output}"
+        log_error "${msg} ERROR\n${output}"
         return 1
     fi
 
     # test if second and third arguments are arrays
     if ! [[ "$(declare -p "${2}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        msg='ERROR: <attrs> argument is not an array'$'\n'
-        msg+='please see function code for usage and sample code'
-        echo "${msg}" >&2
+        log_error "ERROR: <attrs> argument is not an array\n"`
+                 `'please see function code for usage and sample code' >&2
         return 1
     fi
 
@@ -720,9 +717,8 @@ function get_attrs_from_json
     then
         if ! [[ "$(declare -p "${3}" 2> /dev/null)" =~ "declare -a" ]]
         then
-            msg='ERROR: <opt_attrs> argument is not an array'$'\n'
-            msg+='please see function code for usage and sample code'
-            echo "${msg}" >&2
+            log_error "ERROR: <opt_attrs> argument is not an array\n"`
+                    `'please see function code for usage and sample code' >&2
             return 1
         fi
     fi
@@ -732,7 +728,7 @@ function get_attrs_from_json
 
     # NOTE: declare -g: https://stackoverflow.com/q/9871458/217844
     # TODO: in case of error, this should either set all variables or none
-    echo -n 'extract mandatory attributes from JSON string: '
+    msg='extract mandatory attributes from JSON string:'
     for attr in "${attrs_[@]}"
     do
         output="$(jq -r ".${attr}" <<< "${json_}")"
@@ -742,18 +738,18 @@ function get_attrs_from_json
         then
             declare -g "${attr}"="${output}"
         else
-            echo 'ERROR'
-            echo "Failed to get ${attr} attribute from JSON string"
+            log_error "${msg} ERROR\n"`
+                     `"Failed to get %s attribute from JSON string\n" "${attr}"
             return 1
         fi
     done
-    echo 'OK'
+    log_info "${msg} OK\n"
 
     if [ -n "${3}" ]
     then
         local -n opt_attrs_="${3}"
 
-        echo -n 'extract optional attributes from JSON string: '
+        msg='extract optional attributes from JSON string:'
         # NOTE: for now, set conf attributes to '' if not found
         # so check if set later in this script can be done with -n
         # TODO: set / unset / null vars in bash:
@@ -768,7 +764,7 @@ function get_attrs_from_json
                 declare -g "${attr}"=''
             fi
         done
-        echo 'OK'
+        log_info "${msg} OK\n"
     fi
 }
 
