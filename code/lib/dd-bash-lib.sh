@@ -330,27 +330,27 @@ function _log
 
 function log_critical
 {
-    _log CRITICAL "${1}"
+    _log CRITICAL "${@}"
 }
 
 function log_error
 {
-    _log ERROR "${1}"
+    _log ERROR "${@}"
 }
 
 function log_warning
 {
-    _log WARNING "${1}"
+    _log WARNING "${@}"
 }
 
 function log_info
 {
-    _log INFO "${1}"
+    _log INFO "${@}"
 }
 
 function log_debug
 {
-    _log DEBUG "${1}"
+    _log DEBUG "${@}"
 }
 
 
