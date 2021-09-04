@@ -465,7 +465,7 @@ function configure_platform
             xargs='xargs'
             ;;
         *)
-            log_critical 'configure platform: ERROR\n'`
+            log_error 'configure platform: ERROR\n'`
                         `'unsupported operating system: %s\n' "${OSTYPE}" >&2
             return 1
             ;;
@@ -519,8 +519,8 @@ function extend_path
 
     if [ "${#}" -ne 2 ]
     then
-        log_critical 'ERROR: wrong number of arguments\n'`
-                    `'please see function code for usage and sample code\n' >&2
+        log_error 'ERROR: wrong number of arguments\n'`
+                 `'please see function code for usage and sample code\n' >&2
         return 1
     fi
 
@@ -530,15 +530,15 @@ function extend_path
     # http://fvue.nl/wiki/Bash:_Detect_if_variable_is_an_array
     if ! [[ "$(declare -p "${1}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        log_critical 'ERROR: <req_tools> argument is not an array\n'`
-                    `'please see function code for usage and sample code\n' >&2
+        log_error 'ERROR: <req_tools> argument is not an array\n'`
+                 `'please see function code for usage and sample code\n' >&2
         return 1
     fi
 
     if ! [[ "$(declare -p "${2}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        log_critical 'ERROR: <ext_paths> argument is not an array\n'`
-                    `'please see function code for usage and sample code\n' >&2
+        log_error 'ERROR: <ext_paths> argument is not an array\n'`
+                 `'please see function code for usage and sample code\n' >&2
         return 1
     fi
 
@@ -618,14 +618,13 @@ function extend_path
             # https://linux.die.net/man/1/bash
             # search for 'command [-pVv] command'
             # TODO: align OK / FAIL in output over all lines
-            # shellcheck disable=SC2059
-            
+            msg='  %s:'
             if [ -x "$(command -v "${req_tool}")" ]
             then
-                log_info  '  %s: OK\n'   "${req_tool}"
+                log_info  "${msg} OK\n"   "${req_tool}"
                 found_tools_map["${req_tool}"]=true
             else
-                log_error '  %s: FAIL\n' "${req_tool}"
+                log_error "${msg} FAIL\n" "${req_tool}"
                 found_tools_map["${req_tool}"]=false
             fi
         done
