@@ -82,6 +82,8 @@ declare -i -g _dd_bashlib_log_level=30
 # NOTE: based on https://stackoverflow.com/a/42426680
 # TODO: research/review printing output to stdout ./. stderr
 # TODO: clarify difference if e.g. log level is quoted or not
+# TODO: align doc with other funcs, e.g. add sample code
+# TODO: align funcs: log func name and purpose at start (and something at end ?)
 
 # NOTE: as convention, using printf over echo:
 #   https://askubuntu.com/a/467756
@@ -141,6 +143,7 @@ function _log
         return 1
     fi
 
+    # return early if log level is too low for any output
     if (( _dd_bashlib_log_level > _dd_bashlib_log_levels[${log_level}] ))
     then
         return 0
@@ -151,6 +154,9 @@ function _log
     # printf '_log: ${*}: %s\n' "${*}"
     # shellcheck disable=SC2016
     # printf '_log: ${*}: %s\n' "${@}"
+
+    # TODO: for compound log message, render arrays/hashes as for single message
+    # TODO: find a way to merge single and compound log message
 
     # single log message
     if [ "${#}" -eq 2 ]
@@ -370,8 +376,8 @@ function set_log_level
     then
         # TODO: shellcheck bug ?
         # shellcheck disable=SC2059
-        printf 'ERROR: wrong number of arguments\n'`
-              `'please see function code for usage and sample code\n' >&2
+        log_error 'ERROR: wrong number of arguments\n'`
+                 `'please see function code for usage and sample code\n' >&2
         return 1
     fi
 
@@ -380,7 +386,7 @@ function set_log_level
 
     if [ ! -v '_dd_bashlib_log_levels[${log_level}]' ]
     then
-        printf "ERROR: invalid log level '%s'\n" "${log_level}" >&2
+        log_error "ERROR: invalid log level '%s'\n" "${log_level}" >&2
         return 1
     fi
 
