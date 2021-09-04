@@ -38,11 +38,11 @@
 # TODO: in all func doc, review/align $1, $2, etc. ./. parameter names
 
 
-# treat unset variables and parameters as error for parameter expansion:
+# -----------------------------------------------------------------------------
+# set bash options:
 # https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
-# NOTE: this is a backup safety measure; globals set externally (i.e. by
-# scripts using this library) are tested individually before they are used
 set -o nounset
+set -o pipefail
 
 
 # -----------------------------------------------------------------------------
@@ -54,9 +54,373 @@ dd_bashlib_marker_start='dd_bashlib_marker_start'
 # string to indicate the line after relevant output on stdout
 dd_bashlib_marker_end='dd_bashlib_marker_end'
 
+# TODO: NOTSET is not currently used for anything
+# TODO: disallow logging with NOTSET level or setting NOTSET level
+
+# log levels used by log_* functions, match Python log levels:
+#   https://docs.python.org/3/library/logging.html#levels
+# NOTE: need to use -g to declare this at global scope - not for BashLib itself,
+# but for bats unit tests: without -g, unit test code doesn't see this variable
+declare -A -g _dd_bashlib_log_levels=([CRITICAL]=50
+                                      [ERROR]=40
+                                      [WARNING]=30
+                                      [INFO]=20
+                                      [DEBUG]=10
+                                      [NOTSET]=0)
+
+# log level set by default or by set_log_level function
+# TODO: use e.g. _dd_bashlib_log_levels[WARNING] for better readability ?
+declare -i -g _dd_bashlib_log_level=30
+
 
 # -----------------------------------------------------------------------------
 # define functions: http://stackoverflow.com/a/6212408
+
+
+# -----------------------------------------------------------------------------
+# logging
+
+# NOTE: based on https://stackoverflow.com/a/42426680
+# TODO: research/review printing output to stdout ./. stderr
+# TODO: clarify difference if e.g. log level is quoted or not
+# TODO: align doc with other funcs, e.g. add sample code
+# TODO: align funcs: log func name and purpose at start (and something at end ?)
+
+# NOTE: as convention, using printf over echo:
+#   https://askubuntu.com/a/467756
+#   https://unix.stackexchange.com/a/77564
+#   https://unix.stackexchange.com/a/65819
+
+
+# internal function to perform the actual printing of a log message
+#
+# This function is not meant to be used directly; use log_* functions instead.
+#
+# Prerequisites:
+#   Bash 5.1+, uses some weird bash stuff not available in earlier versions
+# Globals:
+#   ${#}, ${1}, ${2} - evaluated to get function arguments
+# Arguments:
+#   log_level - one of the log levels defined in _dd_bashlib_log_levels
+#   log_value - value to log: int, float, string, array, hash
+# Returns:
+#   0 if successful; 1 otherwise
+#
+# Sample code:
+#   _log WARNING 'this is a log message with log level WARNING'
+
+function _log
+{
+    if [ "${#}" -eq 0 ]
+    then
+        # TODO: using '` ... `' to wrap lines triggers SC2059 - shellcheck bug ?
+        # shellcheck disable=SC2059
+        printf 'ERROR: wrong number of arguments\n'`
+              `'please see function code for usage and sample code\n' >&2
+        return 1
+    fi
+
+    # NOTE: no quotes
+    local log_level=${1}
+
+    # printf 'log_level: %s\n' "${log_level}"
+    # printf '_dd_bashlib_log_level: %s\n' "${_dd_bashlib_log_level}"
+    # NOTE: print an associative array in bash:
+    #   https://unix.stackexchange.com/a/623797
+    # bash is getting dumber with every version
+    # printf '_dd_bashlib_log_levels: %s\n' "${_dd_bashlib_log_levels[@]@K}"
+    # printf '_dd_bashlib_log_levels[log_level]: %s\n' \
+    #           "${_dd_bashlib_log_levels[${log_level}]}"
+    # sample output:
+    # log_level: CRITICAL
+    # _dd_bashlib_log_level: 30
+    # _dd_bashlib_log_levels[log_level]: 50
+    # ERROR "40" INFO "20" NOTSET "0" WARNING "30" CRITICAL "50" DEBUG "10" 
+
+    # check if item exists in associative array:
+    # https://stackoverflow.com/a/13219811
+    # use [[ ... ]] or quote expression after -v:
+    # https://github.com/koalaman/shellcheck/wiki/SC2208
+    # NOTE: without -g, the expression after -v is empty;
+    # see 'declare -A -g _dd_bashlib_log_levels' above
+    if [ ! -v '_dd_bashlib_log_levels[${log_level}]' ]
+    then
+        printf "ERROR: invalid log level '%s'\n" "${log_level}" >&2
+        return 1
+    fi
+
+    # return early if log level is too low for any output
+    if (( _dd_bashlib_log_level > _dd_bashlib_log_levels[${log_level}] ))
+    then
+        return 0
+    fi
+
+
+    # shellcheck disable=SC2016
+    # printf '_log: ${*}: %s\n' "${*}"
+    # shellcheck disable=SC2016
+    # printf '_log: ${*}: %s\n' "${@}"
+
+    # TODO: for compound log message, render arrays/hashes as for single message
+    # TODO: find a way to merge single and compound log message
+
+    # single log message
+    if [ "${#}" -eq 2 ]
+    then
+        local log_value="${2}"
+
+        # test if log value is an array
+        if   [[ "$(declare -p "${log_value}" 2> /dev/null)" =~ "declare -a" ]]
+        then
+            # bash indirect expansion: https://unix.stackexchange.com/a/350007
+            # yet another proof that bash is just a sad, broken laughing stock;
+            # even the official documentation is simply useless:
+            #   https://www.gnu.org/software/bash/manual/html_node/ ...
+            #    ... Shell-Parameter-Expansion.html > "${parameter@operator}"
+            # NOTE: `echo "${!ref}"` doesn't seem to care if "${log_value}[@]"
+            # or "${log_value}[*]" is used, same result (yet another bash joke);
+            # printf '%s\n' "${!ref}" with "${log_value}[@]" prints one entry
+            # per line; need to use "${log_value}[*]"
+            ref="${log_value}[*]"
+            printf '%s\n' "${!ref}"
+
+        elif [[ "$(declare -p "${log_value}" 2> /dev/null)" =~ "declare -A" ]]
+        then
+            # NOTE: similar issues as above; also, bash hashes are not sorted:
+            #     ref="${log_value}[@]"
+            #   using echo:
+            #     echo "${!ref}"
+            #   sample log output:
+            #     log message some
+            #   using printf:
+            #     printf '%s\n' "${!ref}"
+            #   sample log output:
+            #     log
+            #     message
+            #     some
+            #   using laughing stock @K syntax
+            #     printf '%s\n' "${!ref@K}"
+            #   sample log output:
+            #     "key 2" "log" "key 3" "message" "key 1" "some" 
+            # 
+            # get hash keys and iterate over them:
+            #   https://unix.stackexchange.com/a/499125
+            #   https://www.shell-tips.com/bash/arrays/#how-to-get-the- ...
+            #    ... keyvalue-pair-of-a-bash-array-obtain-keys-or-indices
+            # bash hackers wiki is completely useless:
+            #   https://wiki.bash-hackers.org/syntax/arrays#metadata
+            #   https://wiki.bash-hackers.org/syntax/arrays#associative_bash_4
+            #   https://wiki.bash-hackers.org/syntax/arrays#indirection
+            # 
+            # bash fails miserably at getting keys from a hash ref;
+            # it doesn't matter if [@] or [*] is used; bash just doesn't care
+            #   ref="${log_value}[@]"
+            #
+            #   printf "%s\n" "${ref[@]}"
+            #   sample log output:
+            #   log_hash[@]
+            #
+            #   printf "%s\n" "${!ref[@]}"
+            #   sample log output:
+            #   0
+            #
+            #   printf "%s\n" "${!ref}"
+            #   sample log output:
+            #   log
+            #   message
+            #   some
+            #
+
+            # the reference is the problem:
+            # using var name from bats test works:
+            #   printf "%s\n" "${!log_hash[@]}"
+            #   sample log output:
+            #   key 2
+            #   key 3
+            #   key 1
+
+            # TODO: can this be solved using `local -n` ?
+            # local takes the same switches as declare; from 'help declare':
+            #   -n   make NAME a reference to the variable named by its value
+            # local -n log_level="${1}"
+            # local -n log_value="${2}"
+
+            # use the only way available to get the hash contents;
+            # again, it doesn't matter if [@] or [*] is used
+            #   ref="${log_value}[@]"
+            #   printf '%s\n' "${!ref@K}"
+            # sample log output:
+            #   "key 2" "log" "key 3" "message" "key 1" "some"
+
+            ref="${log_value}[@]"
+            hash_str="${!ref@K}"
+            # printf "|%s|" "${hash_str}"
+            # sample log output - note the trailing space:
+            # |"key 2" "log" "key 3" "message" "key 1" "some" |
+            sedex='s|"([^"]*)" "([^"]*)" |"\1" "\2"\n|g'
+
+            # NOTE: can not use "${sed}" in here;
+            # configure_platform has not run yet
+            case "${OSTYPE}" in
+                darwin*)
+                    sed='gsed'
+                    ;;
+                linux-*)
+                    # shellcheck disable=SC2034
+                    sed='sed'
+                    ;;
+                *)
+                    printf 'unsupported operating system: %s\n' "${OSTYPE}" >&2
+                    return 1
+                    ;;
+            esac
+
+            mapfile -t lines < <("${sed}" -E "${sedex}" <<< "${hash_str}")
+            # for line in "${lines[@]}"
+            # do
+            #     printf 'line: %s' "${line}"
+            # done
+            # sample log output - note the trailing empty line:
+            # line: key 2: log
+            # line: key 3: message
+            # line: key 1: some
+            # line: 
+
+            # remove empty lines: https://stackoverflow.com/a/16414489
+            sedex='/^[[:space:]]*$/d'
+            mapfile -t sorted < <(printf '%s\n' "${lines[@]}" \
+                                    | sort | sed "${sedex}")
+            printf "%s\n" "${sorted[*]}"
+
+        else
+            # NOTE: use %b, not %s to interpret e.g. \n in log_value
+            printf '%b' "${log_value}"
+        fi
+
+    # compound log message: format string and arguments
+    else
+        # read all arguments into array:
+        # https://stackoverflow.com/a/12711837
+        # TODO: do this earlier and work based on this
+        local all_args=("${@}")
+
+        local format_str="${2}"
+
+        # bash array slicing:
+        # https://stackoverflow.com/a/1336245
+        local arg_strings=("${all_args[@]:2}")
+
+        # printf 'all_args : %s\n' "${all_args[*]}"
+        # printf 'all_arg  : %s\n' "${all_args[@]}"
+        # printf 'format_str  : %s\n' "${format_str}"
+        # printf 'arg_strings : %s\n' "${arg_strings[*]}"
+        # printf 'arg_string  : %s\n' "${arg_strings[@]}"
+
+        # TODO: verify number of %s matches number of arg strings
+
+        # shellcheck disable=SC2059
+        printf "${format_str}" "${arg_strings[@]}"
+    fi
+
+    return 0
+}
+
+
+# logging functions
+#
+# These log the value passed with the log level indicated by their name.
+#
+# Globals:
+#   ${1} - evaluated to get function arguments
+# Arguments:
+#   log_value - value to log: int, float, string, array, hash
+# Returns:
+#   0 if successful; 1 otherwise
+#
+# Sample code:
+#   log_critical 'this is a log message with log level CRITICAL'
+#   log_error    'this is a log message with log level ERROR'
+#   log_warning  'this is a log message with log level WARNING'
+#   log_info     'this is a log message with log level INFO'
+#   log_debug    'this is a log message with log level DEBUG'
+#
+# TODO: do these really return an return code ?!?
+
+function log_critical
+{
+    _log CRITICAL "${@}"
+}
+
+function log_error
+{
+    _log ERROR "${@}"
+}
+
+function log_warning
+{
+    _log WARNING "${@}"
+}
+
+function log_info
+{
+    _log INFO "${@}"
+}
+
+function log_debug
+{
+    _log DEBUG "${@}"
+}
+
+
+# set log level
+#
+# Sets _dd_bashlib_log_level to log level passed as argument.
+#
+# Globals:
+#   ${1} - evaluated to get function arguments
+# Arguments:
+#   log_level - one of the log levels defined in _dd_bashlib_log_levels
+# Returns:
+#   0 if successful; 1 otherwise
+#
+# Sample code:
+#   set_log_level CRITICAL
+#   set_log_level ERROR
+#   set_log_level WARNING
+#   set_log_level INFO
+#   set_log_level DEBUG
+#   set_log_level NOTSET  # NOTE: works, but shouldn't be used
+
+function set_log_level
+{
+    msg='set log level:'
+
+    if [ "${#}" -ne 1 ]
+    then
+        # TODO: shellcheck bug ?
+        # shellcheck disable=SC2059
+        log_error '%s ERROR: wrong number of arguments\n'`
+                 `'please see function code for usage and sample code\n' \
+                  "${msg}" >&2
+        return 1
+    fi
+
+    # NOTE: no quotes
+    local log_level=${1}
+
+    if [ ! -v '_dd_bashlib_log_levels[${log_level}]' ]
+    then
+        log_error "%s ERROR: invalid log level '%s'\n" \
+                  "${msg}" "${log_level}" >&2
+        return 1
+    fi
+
+    _dd_bashlib_log_level=_dd_bashlib_log_levels[${log_level}]
+
+    log_info '%s OK' "${msg}"
+
+    return 0
+}
 
 
 # -----------------------------------------------------------------------------
@@ -103,14 +467,17 @@ dd_bashlib_marker_end='dd_bashlib_marker_end'
 
 function configure_platform
 {
-    # http://stackoverflow.com/a/18434831
+    msg='configure platform:'
+
+    # ${OSTYPE}: http://stackoverflow.com/a/18434831
 
     # TODO: shellcheck reports SC2034 on macOS in the linux-*) case,
     # but not for the darwin*) case; review disabling and situation on Linux
 
     case "${OSTYPE}" in
         darwin*)
-            echo 'configure platform: OK'
+            log_info "%s OK\n" "${msg}"
+            cp='gcp'
             date='gdate'
             grep='ggrep'
             readlink='greadlink'
@@ -118,7 +485,9 @@ function configure_platform
             xargs='gxargs'
             ;;
         linux-*)
-            echo 'configure platform: OK'
+            log_info "%s OK\n" "${msg}"
+            # shellcheck disable=SC2034
+            cp='cp'
             # shellcheck disable=SC2034
             date='date'
             # shellcheck disable=SC2034
@@ -131,9 +500,8 @@ function configure_platform
             xargs='xargs'
             ;;
         *)
-            msg='configure platform: ERROR'$'\n'
-            msg+="unsupported operating system: ${OSTYPE}"
-            echo "${msg}" >&2
+            log_error '%s ERROR\nunsupported operating system: %s\n' \
+                     "${msg}" "${OSTYPE}" >&2
             return 1
             ;;
     esac
@@ -182,13 +550,12 @@ function configure_platform
 
 function extend_path
 {
-    echo 'verify required executables are available in PATH:'
+    log_info 'verify required executables are available in PATH:\n'
 
     if [ "${#}" -ne 2 ]
     then
-        msg='ERROR: wrong number of arguments'$'\n'
-        msg+='please see function code for usage and sample code'
-        echo "${msg}" >&2
+        log_error 'ERROR: wrong number of arguments\n'`
+                 `'please see function code for usage and sample code\n' >&2
         return 1
     fi
 
@@ -198,17 +565,15 @@ function extend_path
     # http://fvue.nl/wiki/Bash:_Detect_if_variable_is_an_array
     if ! [[ "$(declare -p "${1}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        msg='ERROR: <req_tools> argument is not an array'$'\n'
-        msg+='please see function code for usage and sample code'
-        echo "${msg}" >&2
+        log_error 'ERROR: <req_tools> argument is not an array\n'`
+                 `'please see function code for usage and sample code\n' >&2
         return 1
     fi
 
     if ! [[ "$(declare -p "${2}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        msg='ERROR: <ext_paths> argument is not an array'$'\n'
-        msg+='please see function code for usage and sample code'
-        echo "${msg}" >&2
+        log_error 'ERROR: <ext_paths> argument is not an array\n'`
+                 `'please see function code for usage and sample code\n' >&2
         return 1
     fi
 
@@ -253,18 +618,20 @@ function extend_path
             # test if path is already in PATH
             if [[ "${PATH}" = *"${ext_path}"* ]]
             then
-                echo "  WARNING: path ${ext_path} is already in PATH; skip"
+                log_warning '  WARNING: path %s is already in PATH; skip\n' \
+                                "${ext_path}" >&2
                 continue
             fi
 
             # TODO: test if readable / executable ?
             if [ ! -d "${ext_path}" ]
             then
-                echo "  WARNING: folder ${ext_path} does not exist; skip"
+                log_warning '  WARNING: folder %s does not exist; skip\n' \
+                                "${ext_path}" >&2
                 continue
             fi
 
-            echo "  append ${ext_path} to PATH and retry:"
+            log_info '  append %s to PATH and retry:\n' "${ext_path}" >&2
             PATH="${PATH}:${ext_path}"
         fi
 
@@ -286,13 +653,13 @@ function extend_path
             # https://linux.die.net/man/1/bash
             # search for 'command [-pVv] command'
             # TODO: align OK / FAIL in output over all lines
-            echo -n "  ${req_tool}: "
+            msg='  %s:'
             if [ -x "$(command -v "${req_tool}")" ]
             then
-                echo 'OK'
+                log_info  "${msg} OK\n"   "${req_tool}"
                 found_tools_map["${req_tool}"]=true
             else
-                echo 'FAIL'
+                log_error "${msg} FAIL\n" "${req_tool}"
                 found_tools_map["${req_tool}"]=false
             fi
         done
@@ -314,7 +681,7 @@ function extend_path
         fi
     done
 
-    echo
+    log_info '\n'
 
     return 1
 }
@@ -334,12 +701,12 @@ function extend_path
 # Prerequisites:
 #   Bash 4.2+, uses arrays and declare -g not available in earlier versions
 # Globals:
-#   ${#}, ${1}, ${2}, ${3} - evaluated to get function arguments
+#   ${#}, ${1}, ${2}, (optionally) ${3} - evaluated to get function arguments;
 #   sets global variables corresponding to attributes extracted from JSON string
 # Arguments:
 #   json      - JSON string to extract attributes from
 #   attrs     - string array with names of mandatory attributes to extract
-#   opt_attrs - string array with names of optional attributes to extract
+#   opt_attrs - (optional) string array with names of optional attrs to extract
 # Returns:
 #   0 if all mandatory (and no, some or all optional) attributes
 #   were extracted from JSON string into global variables; 1 otherwise
@@ -348,53 +715,57 @@ function extend_path
 #   json="{ 'key_01': 'value 01', 'key_02': 'value 02', 'key_03': 'value 03' }"
 #   attrs=('key_01' 'key_02')
 #   opt_attrs=('key_03')
-#   get_attrs_from_json json attrs opt_attrs
+#   get_attrs_from_json "${json}" attrs opt_attrs
+#
+#   json="{ 'key_01': 'value 01', 'key_02': 'value 02' }"
+#   attrs=('key_01' 'key_02')
+#   get_attrs_from_json "${json}" attrs
 
 function get_attrs_from_json
 {
-    if [ "${#}" -ne 3 ]
+    log_info 'get attributes from JSON:\n'
+
+    if [ "${#}" -ne 2 ] && [ "${#}" -ne 3 ]
     then
-        msg='ERROR: wrong number of arguments'$'\n'
-        msg+='please see function code for usage and sample code'
-        echo "${msg}" >&2
+        log_error 'ERROR: wrong number of arguments\n'`
+                 `'please see function code for usage and sample code\n'
         return 1
     fi
 
-    echo -n 'verify input string is valid JSON: '
+    msg='verify input string is valid JSON:'
     # https://unix.stackexchange.com/a/76407
     if output="$(jq '.' <<< "${1}" 2>&1)"
     then
-        echo 'OK'
+        log_info  "${msg} OK\n"
     else
-        echo 'ERROR'
-        echo "${output}"
+        log_error "${msg} ERROR\n${output}"
         return 1
     fi
 
     # test if second and third arguments are arrays
     if ! [[ "$(declare -p "${2}" 2> /dev/null)" =~ "declare -a" ]]
     then
-        msg='ERROR: <attrs> argument is not an array'$'\n'
-        msg+='please see function code for usage and sample code'
-        echo "${msg}" >&2
+        log_error "ERROR: <attrs> argument is not an array\n"`
+                 `'please see function code for usage and sample code' >&2
         return 1
     fi
 
-    if ! [[ "$(declare -p "${3}" 2> /dev/null)" =~ "declare -a" ]]
+    if [ -n "${3}" ]
     then
-        msg='ERROR: <opt_attrs> argument is not an array'$'\n'
-        msg+='please see function code for usage and sample code'
-        echo "${msg}" >&2
-        return 1
+        if ! [[ "$(declare -p "${3}" 2> /dev/null)" =~ "declare -a" ]]
+        then
+            log_error "ERROR: <opt_attrs> argument is not an array\n"`
+                    `'please see function code for usage and sample code' >&2
+            return 1
+        fi
     fi
 
     json_="${1}"
     local -n attrs_="${2}"
-    local -n opt_attrs_="${3}"
 
     # NOTE: declare -g: https://stackoverflow.com/q/9871458/217844
     # TODO: in case of error, this should either set all variables or none
-    echo -n 'extract mandatory attributes from JSON string: '
+    msg='extract mandatory attributes from JSON string:'
     for attr in "${attrs_[@]}"
     do
         output="$(jq -r ".${attr}" <<< "${json_}")"
@@ -404,29 +775,34 @@ function get_attrs_from_json
         then
             declare -g "${attr}"="${output}"
         else
-            echo 'ERROR'
-            echo "Failed to get ${attr} attribute from JSON string"
+            log_error "${msg} ERROR\n"`
+                     `"Failed to get %s attribute from JSON string\n" "${attr}"
             return 1
         fi
     done
-    echo 'OK'
+    log_info "${msg} OK\n"
 
-    echo -n 'extract optional attributes from JSON string: '
-    # NOTE: for now, set conf attributes to '' if not found
-    # so check if set later in this script can be done with -n
-    # TODO: set / unset / null vars in bash:
-    # https://stackoverflow.com/a/16753536
-    for attr in "${opt_attrs_[@]}"
-    do
-        output="$(jq -r ".${attr}" <<< "${json_}")"
-        if [ -n "${output}" ] && [ "${output}" != 'null' ]
-        then
-            declare -g "${attr}"="${output}"
-        else
-            declare -g "${attr}"=''
-        fi
-    done
-    echo 'OK'
+    if [ -n "${3}" ]
+    then
+        local -n opt_attrs_="${3}"
+
+        msg='extract optional attributes from JSON string:'
+        # NOTE: for now, set conf attributes to '' if not found
+        # so check if set later in this script can be done with -n
+        # TODO: set / unset / null vars in bash:
+        # https://stackoverflow.com/a/16753536
+        for attr in "${opt_attrs_[@]}"
+        do
+            output="$(jq -r ".${attr}" <<< "${json_}")"
+            if [ -n "${output}" ] && [ "${output}" != 'null' ]
+            then
+                declare -g "${attr}"="${output}"
+            else
+                declare -g "${attr}"=''
+            fi
+        done
+        log_info "${msg} OK\n"
+    fi
 }
 
 
@@ -445,24 +821,29 @@ function get_attrs_from_json
 # Arguments:
 #   yaml_file - absolute or relative path to YAML file to extract from
 #   attrs     - string array with names of mandatory attributes to extract
-#   opt_attrs - string array with names of optional attributes to extract
+#   opt_attrs - (optional) string array with names of optional attrs to extract
 # Returns:
 #   0 if all mandatory (and no, some or all optional) attributes
 #   were extracted from YAML file into global variables; 1 otherwise
 #
 # Sample code:
-#   yaml_file='path/to/file.yaml'
+#   yaml_file='path/to/some_file.yaml'
 #   attrs=('key_01' 'key_02')
 #   opt_attrs=('key_03')
-#   get_attrs_from_yaml_file yaml_file attrs opt_attrs
+#   get_attrs_from_yaml_file "${yaml_file}" attrs opt_attrs
+#
+#   yaml_file='path/to/another_file.yaml'
+#   attrs=('key_01' 'key_02')
+#   get_attrs_from_yaml_file "${yaml_file}" attrs
 
 function get_attrs_from_yaml_file
 {
-    if [ "${#}" -ne 3 ]
+    log_info 'get attributes from YAML file:\n'
+
+    if [ "${#}" -ne 2 ] && [ "${#}" -ne 3 ]
     then
-        msg='ERROR: wrong number of arguments'$'\n'
-        msg+='please see function code for usage and sample code'
-        echo "${msg}" >&2
+        log_error 'ERROR: wrong number of arguments\n'`
+                 `'please see function code for usage and sample code\n'
         return 1
     fi
 
@@ -489,14 +870,14 @@ function get_attrs_from_yaml_file
     )
 
     # NOTE: this essentially converts YAML to JSON
-    echo -n 'load YAML file and convert to JSON: '
+    msg='load YAML file and convert to JSON:'
     # shellcheck disable=SC2154
-    if output="$(yq read "${yaml_file_}" --tojson 2>&1)"
+    if output="$(yq eval "${yaml_file_}" --output-format json 2>&1)"
     then
-        echo 'OK'
+        log_info "${msg} OK\n"
         json_="${output}"
     else
-        echo 'ERROR'
+        log_error "${msg} ERROR\n"
         first_line="$(head -n 1 <<< "${output}")"
 
         # look up error message to display by first line of yq error message
@@ -504,13 +885,13 @@ function get_attrs_from_yaml_file
         do
             if [ "${first_line}" = "${yq_err_msg}" ]
             then
-                echo "${map_err_msg[${yq_err_msg}]}"
+                log_error "${map_err_msg[${yq_err_msg}]}\n"
                 return 1
             fi
         done
 
         # if first line of yq error message is not found in map, display output
-        echo "${output}"
+        log_error "${output}\n"
         return 1
     fi
 
@@ -546,13 +927,12 @@ function get_attrs_from_yaml_file
 
 function get_conf_file_arg
 {
-    echo -n 'get configuration file command line argument: '
+    msg='get configuration file command line argument:'
 
     if [ "${#}" -ne 1 ]
     then
-        msg='ERROR'$'\n''wrong number of arguments'$'\n'$'\n'
-        msg+="$(usage)"
-        echo "${msg}" >&2
+        log_error "%s ERROR\nwrong number of arguments\n\n%s\n" \
+                  "${msg}" "$(usage)" >&2
         return 1
     fi
 
@@ -566,16 +946,17 @@ function get_conf_file_arg
         case "${key}" in
             # NOTE: must escape -?, seems to act as wildcard otherwise
             -\?|--help)
-            echo 'HELP'; echo; usage; return 1 ;;
+            # NOTE: would typically use log_info, but help text
+            # should be printed no matter what log level is set
+            # TODO: create additional log level for such cases ?
+            log_critical "${msg} HELP\n$(usage)\n"; return 0 ;;
 
             *)
             if [ -z "${conf_file}" ]
             then
                 conf_file="${1}"
             else
-                msg='ERROR'$'\n''wrong number of arguments'$'\n'$'\n'
-                msg+="$(usage)"
-                echo "${msg}" >&2
+                log_error "${msg} ERROR\nwrong number of arguments\n\n$(usage)\n" >&2
                 return 1
             fi
         esac
@@ -587,9 +968,7 @@ function get_conf_file_arg
     # config file is a mandatory command line argument
     if [ -z "${conf_file}" ]
     then
-        msg='ERROR'$'\n''wrong number of arguments'$'\n'$'\n'
-        msg+="$(usage)"
-        echo "${msg}" >&2
+        log_error "${msg} ERROR\nwrong number of arguments\n\n$(usage)\n" >&2
         return 1
     fi
 
@@ -597,26 +976,23 @@ function get_conf_file_arg
 
     if [ ! -e "${conf_file}" ]
     then
-        msg='ERROR'$'\n'"${conf_file}: Path not found"$'\n'
-        echo "${msg}" >&2
+        log_error "${msg} ERROR\n${conf_file}: Path not found\n" >&2
         return 1
     fi
 
     if [ ! -f "${conf_file}" ]
     then
-        msg='ERROR'$'\n'"${conf_file}: Path is not a file"$'\n'
-        echo "${msg}" >&2
+        log_error "${msg} ERROR\n${conf_file}: Path is not a file\n" >&2
         return 1
     fi
 
     if [ ! -r "${conf_file}" ]
     then
-        msg='ERROR'$'\n'"${conf_file}: File is not readable"$'\n'
-        echo "${msg}" >&2
+        log_error "${msg} ERROR\n${conf_file}: File is not readable\n" >&2
         return 1
     fi
 
-    echo 'OK'
+    log_info "${msg} OK"
 
     return 0
 }
@@ -684,7 +1060,7 @@ function get_environment
     if [ $# -ne 1 ] && [ ${#} -ne 2 ]
     then
         # get function name: https://stackoverflow.com/a/1835958
-        echo "Usage: ${FUNCNAME[0]} <here> [<path>]" 2>&1
+        echo "usage: ${FUNCNAME[0]} <here> [<path>]" 2>&1
         return 1
     fi
 
@@ -700,7 +1076,7 @@ function get_environment
 
     if [ -z "${here}" ]
     then
-        echo "Usage: ${FUNCNAME[0]} <here>" 2>&1
+        echo "usage: ${FUNCNAME[0]} <here>" 2>&1
         return 1
     fi
 
@@ -754,7 +1130,7 @@ function get_environment
     # NOTE: test if string in array:
     # https://stackoverflow.com/a/47541882
     # shellcheck disable=SC2154
-    if printf '%s\n' "${paths_to_prod[@]}"  | grep -q "^${here}$"
+    if printf '%s\n' "${paths_to_prod[@]}"  | grep -q "^${here}"
     then
         environment='production'
         exit_code=0
@@ -801,14 +1177,13 @@ function get_environment
 
 function usage
 {
-    # https://stackoverflow.com/q/192319
-    # https://stackoverflow.com/a/965072
-    script_name="${0##*/}"
-
     # NOTE: indentation added here for improved readability
     # is stripped by sed when message is printed
+    # TODO: mapfile with heredoc seems possible,
+    # but causes issues with leading whitespace:
+    # https://stackoverflow.com/a/27650122
     read -r -d '' msg_tmpl << EOT
-    Usage: %s <config file>
+    usage: %s <config file>
 
     mandatory arguments:
       config file           absolute path to configuration file
@@ -817,11 +1192,18 @@ function usage
       -?, --help            print this help message
 EOT
 
-    # NOTE: printf strips trailing newlines
-    # shellcheck disable=SC2059
-    msg="$(printf "${msg_tmpl}" "${script_name}" | sed -e 's|^    ||g')"$'\n'
+    # get script file name in bash:
+    # https://stackoverflow.com/a/48628868
+    # https://stackoverflow.com/a/10668022
+    script_name="${0##*/}"
 
-    echo "${msg}"
+    # render script name into message template and remove indentation
+    # shellcheck disable=SC2059
+    msg="$(printf "${msg_tmpl}" "${script_name}" | sed -e 's|^    ||g')"
+
+    # NOTE: would typically use log_info, but help text
+    # should be printed no matter what log level is set
+    log_critical "%s\n" "${msg}"
 
     return 0
 }
@@ -829,5 +1211,6 @@ EOT
 
 # undo bash option changes so this library can be sourced
 # from a live shell with changing the shell's configuration
-# TODO: test if this works as expected
+# TODO: test if this works as expected - and if required
 set +o nounset
+set +o pipefail

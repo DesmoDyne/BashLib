@@ -40,16 +40,17 @@ function setup
     #   ... (variable multi-line contents)
     #EOT
 
+    # NOTE: bats seems to drop trailing newline, so omit it here, too
+    usage_msg='usage: bats-exec-test <config file>'$'\n'
+    usage_msg+=$'\n'
+    usage_msg+='mandatory arguments:'$'\n'
+    usage_msg+='  config file           absolute path to configuration file'$'\n'
+    usage_msg+=$'\n'
+    usage_msg+='optional arguments:'$'\n'
+    usage_msg+='  -?, --help            print this help message'
+
     err_msg_1='get configuration file command line argument: ERROR'$'\n'
     err_msg_1+='wrong number of arguments'$'\n'
-    err_msg_1+=$'\n'
-    err_msg_1+='Usage: bats-exec-test <config file>'$'\n'
-    err_msg_1+=$'\n'
-    err_msg_1+='mandatory arguments:'$'\n'
-    err_msg_1+='  config file           absolute path to configuration file'$'\n'
-    err_msg_1+=$'\n'
-    err_msg_1+='optional arguments:'$'\n'
-    err_msg_1+='  -?, --help            print this help message'
 
     # create test environment
 
@@ -70,7 +71,6 @@ function setup
     # shellcheck disable=SC1090
     if output="$(source "${path_to_library}" 2>&1)"
     then
-        # shellcheck disable=SC1090
         source "${path_to_library}"
     else
         echo "${output}"
@@ -97,40 +97,38 @@ function teardown
 # ------------------------------------------------------------------------------
 # test wrong number of arguments
 
-@test '#01 - get_conf_file_arg without arguments fails, prints an error' {
+@test '#01    - get_conf_file_arg without arguments fails, prints an error' {
 
   run get_conf_file_arg
 
   # NOTE: this is only displayed if test fails
-  echo
-  echo 'expected output:'$'\n'"${err_msg_1}"
-  echo
-  echo 'actual output:'$'\n'"${output}"
+  printf "expected output:\n---\n%s\n%s\n---\n" "${err_msg_1}" "${usage_msg}"
+  printf "actual output:\n---\n%s\n---\n"       "${output}"
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${err_msg_1}" ]
+  [ "${output}" = "${err_msg_1}"$'\n'"${usage_msg}" ]
 }
 
-@test '#02 - get_conf_file_arg with two arguments fails, prints an error' {
+@test '#02    - get_conf_file_arg with two arguments fails, prints an error' {
 
   run get_conf_file_arg 'first_arg' 'second_arg'
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${err_msg_1}" ]
+  [ "${output}" = "${err_msg_1}"$'\n'"${usage_msg}" ]
 }
 
 # ------------------------------------------------------------------------------
 # test actual actual function behavior
 
-@test '#03 - get_conf_file_arg with empty path fails, prints an error' {
+@test '#03    - get_conf_file_arg with empty path fails, prints an error' {
 
   run get_conf_file_arg ''
 
   [ "${status}" -eq 1 ]
-  [ "${output}" = "${err_msg_1}" ]
+  [ "${output}" = "${err_msg_1}"$'\n'"${usage_msg}" ]
 }
 
-@test '#04 - get_conf_file_arg with nonexistent path fails, prints an error' {
+@test '#04    - get_conf_file_arg with nonexistent path fails, prints an error' {
 
   run get_conf_file_arg 'this_path_does_not_exist'
 
@@ -141,7 +139,7 @@ function teardown
   [ "${output}" = "${exp_out}" ]
 }
 
-@test '#05 - get_conf_file_arg with unreadable file fails, prints an error' {
+@test '#05    - get_conf_file_arg with unreadable file fails, prints an error' {
 
   run get_conf_file_arg "${file_1}"
 
@@ -152,7 +150,7 @@ function teardown
   [ "${output}" = "${exp_out}" ]
 }
 
-@test '#06 - get_conf_file_arg with folder path fails, prints an error' {
+@test '#06    - get_conf_file_arg with folder path fails, prints an error' {
 
   run get_conf_file_arg "${folder_1}"
 
@@ -163,9 +161,21 @@ function teardown
   [ "${output}" = "${exp_out}" ]
 }
 
-@test '#07 - get_conf_file_arg with valid file succeeds, prints expected output' {
+@test '#07/01 - get_conf_file_arg with valid file succeeds, prints nothing' {
 
   run get_conf_file_arg "${file_2}"
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = '' ]
+}
+
+@test '#07/02 - get_conf_file_arg with valid file succeeds, prints expected output with elevated log level' {
+
+  set_log_level INFO
+
+  run get_conf_file_arg "${file_2}"
+
+  set_log_level WARNING
 
   exp_out='get configuration file command line argument: OK'
 
@@ -175,10 +185,10 @@ function teardown
 
 # NOTE: see extend_path.bats on running tests with or without 'run'
 
-@test '#08 - get_conf_file_arg with valid file succeeds, sets conf_file global variable' {
+@test '#08    - get_conf_file_arg with valid file succeeds, sets conf_file global variable' {
 
   # make sure global variable is not already set
-  # shellcheck disable=SC2154
+  # shellcheck disable=SC2030
   [ -z "${conf_file}" ]
 
   get_conf_file_arg "${file_2}"
@@ -186,8 +196,9 @@ function teardown
   [ -n "${conf_file}" ]
 }
 
-@test '#09 - get_conf_file_arg with valid file succeeds, sets conf_file to argument' {
+@test '#09    - get_conf_file_arg with valid file succeeds, sets conf_file to argument' {
 
+  # shellcheck disable=SC2031
   [ -z "${conf_file}" ]
 
   get_conf_file_arg "${file_2}"

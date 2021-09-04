@@ -34,7 +34,6 @@ function setup
     # shellcheck disable=SC1090
     if output="$(source "${path_to_library}" 2>&1)"
     then
-        # shellcheck disable=SC1090
         source "${path_to_library}"
     else
         echo "${output}"
@@ -48,7 +47,7 @@ function setup
 # ------------------------------------------------------------------------------
 # test supported operating systems
 
-@test '#01 - configure_platform on unsupported OS fails, prints an error' {
+@test '#01    - configure_platform on unsupported OS fails, prints an error' {
 
   OLD_OSTYPE="${OSTYPE}"
   # shellcheck disable=SC2030
@@ -69,9 +68,25 @@ function setup
   [ "${output}" = "${exp_out}" ]
 }
 
-@test '#02 - configure_platform on supported OS succeeds, prints expected output' {
+@test '#02/01 - configure_platform on supported OS succeeds, prints expected output' {
 
   run configure_platform
+
+  [ "${status}" -eq 0 ]
+
+  # NOTE: no output with default log level
+  exp_out=''
+
+  [ "${output}" = "${exp_out}" ]
+}
+
+@test '#02/02 - configure_platform on supported OS succeeds, prints expected output with elevated log level' {
+
+  set_log_level INFO
+
+  run configure_platform
+
+  set_log_level WARNING
 
   [ "${status}" -eq 0 ]
 
@@ -85,19 +100,19 @@ function setup
 
 # NOTE: see extend_path.bats on running tests with or without 'run'
 
-@test '#03 - configure_platform on supported OS succeeds, sets tool name variables' {
+@test '#03    - configure_platform on supported OS succeeds, sets tool name variables' {
 
   configure_platform
 
-  # shellcheck disable=SC2154
+  # shellcheck disable=SC2030
   [ -n "${grep}"  ]
-  # shellcheck disable=SC2154
+  # shellcheck disable=SC2030
   [ -n "${sed}"   ]
-  # shellcheck disable=SC2154
+  # shellcheck disable=SC2030
   [ -n "${xargs}" ]
 }
 
-@test '#04 - configure_platform on supported OS succeeds, sets tool name variables per OS' {
+@test '#04    - configure_platform on supported OS succeeds, sets tool name variables per OS' {
 
   configure_platform
 
