@@ -1149,14 +1149,13 @@ function get_environment
 
 function usage
 {
-    # https://stackoverflow.com/q/192319
-    # https://stackoverflow.com/a/965072
-    script_name="${0##*/}"
-
     # NOTE: indentation added here for improved readability
     # is stripped by sed when message is printed
+    # TODO: mapfile with heredoc seems possible,
+    # but causes issues with leading whitespace:
+    # https://stackoverflow.com/a/27650122
     read -r -d '' msg_tmpl << EOT
-    Usage: %s <config file>
+    usage: %s <config file>
 
     mandatory arguments:
       config file           absolute path to configuration file
@@ -1165,11 +1164,18 @@ function usage
       -?, --help            print this help message
 EOT
 
-    # NOTE: printf strips trailing newlines
-    # shellcheck disable=SC2059
-    msg="$(printf "${msg_tmpl}" "${script_name}" | sed -e 's|^    ||g')"$'\n'
+    # get script file name in bash:
+    # https://stackoverflow.com/a/48628868
+    # https://stackoverflow.com/a/10668022
+    script_name="${0##*/}"
 
-    echo "${msg}"
+    # render script name into message template and remove indentation
+    # shellcheck disable=SC2059
+    msg="$(printf "${msg_tmpl}" "${script_name}" | sed -e 's|^    ||g')"
+
+    # NOTE: would typically use log_info, but help text
+    # should be printed no matter what log level is set
+    _log NOT_SET "%s\n" "${msg}"
 
     return 0
 }
