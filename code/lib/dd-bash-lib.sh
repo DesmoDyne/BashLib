@@ -803,15 +803,12 @@ function get_attrs_from_yaml_file
 {
     if [ "${#}" -ne 2 ] && [ "${#}" -ne 3 ]
     then
-        msg='ERROR: wrong number of arguments'$'\n'
-        msg+='please see function code for usage and sample code'
-        echo "${msg}" >&2
+        log_error 'ERROR: wrong number of arguments\n'`
+                 `'please see function code for usage and sample code\n'
         return 1
     fi
 
     yaml_file_="${1}"
-
-    # TODO: update this for yq 4
 
     # NOTE: yq does not handle errors nor log output upon errors very well:
     # for example, if the YAML file to load does not exist, it prints e.g.
@@ -834,14 +831,14 @@ function get_attrs_from_yaml_file
     )
 
     # NOTE: this essentially converts YAML to JSON
-    echo -n 'load YAML file and convert to JSON: '
+    msg='load YAML file and convert to JSON:'
     # shellcheck disable=SC2154
     if output="$(yq eval "${yaml_file_}" --output-format json 2>&1)"
     then
-        echo 'OK'
+        log_info "${msg} OK\n"
         json_="${output}"
     else
-        echo 'ERROR'
+        log_error "${msg} ERROR\n"
         first_line="$(head -n 1 <<< "${output}")"
 
         # look up error message to display by first line of yq error message
@@ -849,13 +846,13 @@ function get_attrs_from_yaml_file
         do
             if [ "${first_line}" = "${yq_err_msg}" ]
             then
-                echo "${map_err_msg[${yq_err_msg}]}"
+                log_error "${map_err_msg[${yq_err_msg}]}\n"
                 return 1
             fi
         done
 
         # if first line of yq error message is not found in map, display output
-        echo "${output}"
+        log_error "${output}\n"
         return 1
     fi
 
