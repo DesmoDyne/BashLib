@@ -436,7 +436,7 @@ function teardown
   [ "${path_before}" = "${path_after}" ]
 }
 
-@test '#11 - extend_path with two empty array arguments succeeds, prints nothing' {
+@test '#11/01 - extend_path with two empty array arguments succeeds, prints nothing' {
 
   req_tools=()
   ext_paths=()
@@ -445,6 +445,21 @@ function teardown
 
   [ "${status}" -eq 0 ]
   [ "${output}" = '' ]
+}
+
+@test '#11/02 - extend_path with two empty array arguments succeeds, prints expected output with elevated log level' {
+
+  req_tools=()
+  ext_paths=()
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "${first_line}" ]
 }
 
 @test '#12 - extend_path with two empty array arguments (alternate notation) succeeds, does not change PATH' {
@@ -459,7 +474,7 @@ function teardown
   [ "${path_before}" = "${path_after}" ]
 }
 
-@test '#13 - extend_path with two empty array arguments (alternate notation) succeeds, prints nothing' {
+@test '#13/01 - extend_path with two empty array arguments (alternate notation) succeeds, prints nothing' {
 
   declare -a req_tools=()
   declare -a ext_paths=()
@@ -468,6 +483,21 @@ function teardown
 
   [ "${status}" -eq 0 ]
   [ "${output}" = '' ]
+}
+
+@test '#13/02 - extend_path with two empty array arguments (alternate notation) succeeds, prints expected output with elevated log level' {
+
+  declare -a req_tools=()
+  declare -a ext_paths=()
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "${first_line}" ]
 }
 
 @test '#14 - extend_path with empty <req_tools> and any path in <ext_paths> succeeds, does not change PATH' {
@@ -482,7 +512,7 @@ function teardown
   [ "${path_before}" = "${path_after}" ]
 }
 
-@test '#15 - extend_path with empty <req_tools> and any path in <ext_paths> succeeds, prints nothing' {
+@test '#15/01 - extend_path with empty <req_tools> and any path in <ext_paths> succeeds, prints nothing' {
 
   req_tools=()
   ext_paths=('this_path_is_not_used')
@@ -493,9 +523,24 @@ function teardown
   [ "${output}" = '' ]
 }
 
+@test '#15/02 - extend_path with empty <req_tools> and any path in <ext_paths> succeeds, prints expected output with elevated log level' {
+
+  req_tools=()
+  ext_paths=('this_path_is_not_used')
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "${first_line}" ]
+}
+
 # NOTE: with bats, it is not possible to test if PATH was changed if FUT fails
 
-@test '#16 - extend_path with nonexistent tool and empty <ext_paths> fails' {
+@test '#16/01 - extend_path with nonexistent tool and empty <ext_paths> fails, prints an error' {
 
   req_tools=('this_tool_does_not_exist')
   ext_paths=()
@@ -508,7 +553,24 @@ function teardown
   [ "${output}" = "${exp_line_2}" ]
 }
 
-@test '#17 - extend_path with nonexistent tool and nonexistent path prints folder warning, fails' {
+@test '#16/02 - extend_path with nonexistent tool and empty <ext_paths> fails, prints an error with elevated log level' {
+
+  req_tools=('this_tool_does_not_exist')
+  ext_paths=()
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  exp_line_2='  this_tool_does_not_exist: FAIL'
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
+}
+
+@test '#17/01 - extend_path with nonexistent tool and nonexistent path fails, prints folder warning' {
 
   req_tools=('this_tool_does_not_exist')
   ext_paths=('this_path_does_not_exist')
@@ -522,7 +584,25 @@ function teardown
   [ "${output}" = "${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
-@test '#18 - extend_path with nonexistent tool and path already in PATH prints path warning, fails' {
+@test '#17/02 - extend_path with nonexistent tool and nonexistent path fails, prints folder warning with elevated log level' {
+
+  req_tools=('this_tool_does_not_exist')
+  ext_paths=('this_path_does_not_exist')
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  exp_line_2='  this_tool_does_not_exist: FAIL'
+  exp_line_3='  WARNING: folder this_path_does_not_exist does not exist; skip'
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
+}
+
+@test '#18/01 - extend_path with nonexistent tool and path already in PATH fails, prints path warning' {
 
   # TODO: this assumes /usr/bin is already in PATH (safe enough for now)
 
@@ -536,6 +616,26 @@ function teardown
 
   [ "${status}" -eq 1 ]
   [ "${output}" = "${exp_line_2}"$'\n'"${exp_line_3}" ]
+}
+
+@test '#18/02 - extend_path with nonexistent tool and path already in PATH fails, prints path warning with elevated log level' {
+
+  # TODO: this assumes /usr/bin is already in PATH (safe enough for now)
+
+  req_tools=('this_tool_does_not_exist')
+  ext_paths=('/usr/bin')
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  exp_line_2='  this_tool_does_not_exist: FAIL'
+  exp_line_3='  WARNING: path /usr/bin is already in PATH; skip'
+
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
 @test '#19 - extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, does not change PATH' {
@@ -552,7 +652,7 @@ function teardown
   [ "${path_before}" = "${path_after}" ]
 }
 
-@test '#20 - extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, prints expected output' {
+@test '#20/01 - extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, prints expected output' {
 
   req_tools=('ls')
   ext_paths=()
@@ -561,6 +661,23 @@ function teardown
 
   [ "${status}" -eq 0 ]
   [ "${output}" = '' ]
+}
+
+@test '#20/02 - extend_path with tool in (unchanged) PATH and empty <ext_paths> succeeds, prints expected output with elevated log level' {
+
+  req_tools=('ls')
+  ext_paths=()
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  exp_line_2='  ls: OK'
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
 @test '#21 - extend_path with tool in (unchanged) PATH and path already in PATH succeeds, does not change PATH' {
@@ -575,7 +692,7 @@ function teardown
   [ "${path_before}" = "${path_after}" ]
 }
 
-@test '#22 - extend_path with tool in (unchanged) PATH and path already in PATH succeeds, prints expected output' {
+@test '#22/01 - extend_path with tool in (unchanged) PATH and path already in PATH succeeds, prints expected output' {
 
   req_tools=('ls')
   ext_paths=('/usr/bin')
@@ -584,6 +701,23 @@ function teardown
 
   [ "${status}" -eq 0 ]
   [ "${output}" = '' ]
+}
+
+@test '#22/02 - extend_path with tool in (unchanged) PATH and path already in PATH succeeds, prints expected output with elevated log level' {
+
+  req_tools=('ls')
+  ext_paths=('/usr/bin')
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  exp_line_2='  ls: OK'
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
 @test '#23 - extend_path with tool in (unchanged) PATH and any path succeeds, does not change PATH' {
@@ -598,7 +732,7 @@ function teardown
   [ "${path_before}" = "${path_after}" ]
 }
 
-@test '#24 - extend_path with tool in (unchanged) PATH and any path succeeds, prints expected output' {
+@test '#24/01 - extend_path with tool in (unchanged) PATH and any path succeeds, prints expected output' {
 
   req_tools=('ls')
   ext_paths=('this_path_is_not_used')
@@ -607,6 +741,23 @@ function teardown
 
   [ "${status}" -eq 0 ]
   [ "${output}" = '' ]
+}
+
+@test '#24/02 - extend_path with tool in (unchanged) PATH and any path succeeds, prints expected output with elevated log level' {
+
+  req_tools=('ls')
+  ext_paths=('this_path_is_not_used')
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  exp_line_2='  ls: OK'
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}" ]
 }
 
 @test '#25 - extend_path with two tools in (unchanged) PATH and any path succeeds, does not change PATH' {
@@ -621,7 +772,7 @@ function teardown
   [ "${path_before}" = "${path_after}" ]
 }
 
-@test '#26 - extend_path with two tools in (unchanged) PATH and any path succeeds, prints expected output' {
+@test '#26/01 - extend_path with two tools in (unchanged) PATH and any path succeeds, prints expected output' {
 
   req_tools=('cat' 'ls')
   ext_paths=('this_path_is_not_used')
@@ -630,6 +781,24 @@ function teardown
 
   [ "${status}" -eq 0 ]
   [ "${output}" = '' ]
+}
+
+@test '#26/02 - extend_path with two tools in (unchanged) PATH and any path succeeds, prints expected output with elevated log level' {
+
+  req_tools=('cat' 'ls')
+  ext_paths=('this_path_is_not_used')
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  exp_line_2='  cat: OK'
+  exp_line_3='  ls: OK'
+
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}" ]
 }
 
 @test '#27 - extend_path with five tools in (unchanged) PATH and any path succeeds, does not change PATH' {
@@ -644,7 +813,7 @@ function teardown
   [ "${path_before}" = "${path_after}" ]
 }
 
-@test '#28 - extend_path with five tools in (unchanged) PATH and any path succeeds, prints expected output' {
+@test '#28/01 - extend_path with five tools in (unchanged) PATH and any path succeeds, prints expected output' {
 
   req_tools=('cat' 'chmod' 'cp' 'date' 'ls')
   ext_paths=('this_path_is_not_used')
@@ -656,13 +825,38 @@ function teardown
   [ "${output}" = '' ]
 }
 
+@test '#28/02 - extend_path with five tools in (unchanged) PATH and any path succeeds, prints expected output with elevated log level' {
+
+  req_tools=('cat' 'chmod' 'cp' 'date' 'ls')
+  ext_paths=('this_path_is_not_used')
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  exp_line_2='  cat: OK'
+  exp_line_3='  chmod: OK'
+  exp_line_4='  cp: OK'
+  exp_line_5='  date: OK'
+  exp_line_6='  ls: OK'
+
+  [ "${status}" -eq 0 ]
+
+  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'"${exp_line_3}"$'\n'
+  exp_out+="${exp_line_4}"$'\n'"${exp_line_5}"$'\n'"${exp_line_6}"
+
+  [ "${output}" = "${exp_out}" ]
+}
+
 # TODO: also test 1, 2, 5 items in ext_paths ?
 
 # ------------------------------------------------------------------------------
 
 # NOTE: with bats, it is not possible to test if PATH was changed if FUT fails
 
-@test '#29 - extend_path with nonexistent tool and existing path fails - CHANGE TO PATH CAN NOT BE TESTED' {
+@test '#29/01 - extend_path with nonexistent tool and existing path fails, prints an error - CHANGE TO PATH CAN NOT BE TESTED' {
 
   req_tools=('this_tool_does_not_exist')
   # NOTE: defined in setup function
@@ -678,6 +872,30 @@ function teardown
   [ "${status}" -eq 1 ]
 
   exp_out="${exp_line_2}"$'\n'"${exp_line_4}"
+
+  [ "${output}" = "${exp_out}" ]
+}
+
+@test '#29/02 - extend_path with nonexistent tool and existing path fails, prints expected output with elevated log level - CHANGE TO PATH CAN NOT BE TESTED' {
+
+  req_tools=('this_tool_does_not_exist')
+  # NOTE: defined in setup function
+  ext_paths=("${folder_1}")
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  exp_line_2='  this_tool_does_not_exist: FAIL'
+  exp_line_3="  append ${folder_1} to PATH and retry:"
+  exp_line_4='  this_tool_does_not_exist: FAIL'
+
+  [ "${status}" -eq 1 ]
+
+  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
+  exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"
 
   [ "${output}" = "${exp_out}" ]
 }
@@ -704,7 +922,7 @@ function teardown
   [ "${path_after}" = "${path_before}:${folder_1}" ]
 }
 
-@test '#31 - extend_path with existing tool and existing path succeeds, prints expected output' {
+@test '#31/01 - extend_path with existing tool and existing path succeeds, prints expected output' {
 
   req_tools=("${tool_11}")
   ext_paths=("${folder_1}")
@@ -716,6 +934,33 @@ function teardown
   [ "${status}" -eq 0 ]
 
   exp_out="${exp_line_2}"
+
+  [ "${output}" = "${exp_out}" ]
+}
+
+@test '#31/02 - extend_path with existing tool and existing path succeeds, prints expected output with elevated log level' {
+
+  req_tools=("${tool_11}")
+  ext_paths=("${folder_1}")
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  exp_line_2="  ${tool_11}: FAIL"
+  exp_line_3="  append ${folder_1} to PATH and retry:"
+  exp_line_4="  ${tool_11}: OK"
+
+  [ "${status}" -eq 0 ]
+
+  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
+  exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"
+
+  # NOTE: this is only displayed if test fails
+  echo 'expected output:'$'\n'"${exp_out}"
+  echo 'actual output:'$'\n'"${output}"
 
   [ "${output}" = "${exp_out}" ]
 }
@@ -732,7 +977,7 @@ function teardown
   [ "${path_after}" = "${path_before}:${folder_1}" ]
 }
 
-@test '#33 - extend_path with two existing tools and existing path succeeds, prints expected output' {
+@test '#33/01 - extend_path with two existing tools and existing path succeeds, prints expected output' {
 
   req_tools=("${tool_11}" "${tool_12}")
   ext_paths=("${folder_1}")
@@ -750,6 +995,33 @@ function teardown
   [ "${output}" = "${exp_out}" ]
 }
 
+@test '#33/02 - extend_path with two existing tools and existing path succeeds, prints expected output with elevated log level' {
+
+  req_tools=("${tool_11}" "${tool_12}")
+  ext_paths=("${folder_1}")
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  # TODO: using read in here fails
+  exp_line_2="  ${tool_11}: FAIL"
+  exp_line_3="  ${tool_12}: FAIL"
+  exp_line_4="  append ${folder_1} to PATH and retry:"
+  exp_line_5="  ${tool_11}: OK"
+  exp_line_6="  ${tool_12}: OK"
+
+  [ "${status}" -eq 0 ]
+
+  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
+  exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"$'\n'
+  exp_out+="${exp_line_5}"$'\n'"${exp_line_6}"
+
+  [ "${output}" = "${exp_out}" ]
+}
+
 @test '#34 - extend_path with two existing tools in two existing path succeeds, changes PATH' {
 
   req_tools=("${tool_11}" "${tool_21}")
@@ -762,7 +1034,7 @@ function teardown
   [ "${path_after}" = "${path_before}:${folder_1}:${folder_2}" ]
 }
 
-@test '#35 - extend_path with two existing tools in two existing path succeeds, prints expected output' {
+@test '#35/01 - extend_path with two existing tools in two existing path succeeds, prints expected output' {
 
   # shellcheck disable=SC2034
   req_tools=("${tool_11}" "${tool_21}")
@@ -779,6 +1051,38 @@ function teardown
   [ "${status}" -eq 0 ]
 
   exp_out="${exp_line_2}"$'\n'"${exp_line_3}"$'\n'"${exp_line_6}"
+
+  [ "${output}" = "${exp_out}" ]
+}
+
+@test '#35/02 - extend_path with two existing tools in two existing path succeeds, prints expected output with elevated log level' {
+
+  # shellcheck disable=SC2034
+  req_tools=("${tool_11}" "${tool_21}")
+  # shellcheck disable=SC2034
+  ext_paths=("${folder_1}" "${folder_2}")
+
+  set_log_level INFO
+
+  run extend_path req_tools ext_paths
+
+  set_log_level WARNING
+
+  # TODO: using read in here fails
+  exp_line_2="  ${tool_11}: FAIL"
+  exp_line_3="  ${tool_21}: FAIL"
+  exp_line_4="  append ${folder_1} to PATH and retry:"
+  exp_line_5="  ${tool_11}: OK"
+  exp_line_6="  ${tool_21}: FAIL"
+  exp_line_7="  append ${folder_2} to PATH and retry:"
+  exp_line_8="  ${tool_21}: OK"
+
+  [ "${status}" -eq 0 ]
+
+  exp_out="${first_line}"$'\n'"${exp_line_2}"$'\n'
+  exp_out+="${exp_line_3}"$'\n'"${exp_line_4}"$'\n'
+  exp_out+="${exp_line_5}"$'\n'"${exp_line_6}"$'\n'
+  exp_out+="${exp_line_7}"$'\n'"${exp_line_8}"
 
   [ "${output}" = "${exp_out}" ]
 }
