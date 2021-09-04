@@ -442,10 +442,8 @@ function teardown
 
   run extend_path req_tools ext_paths
 
-  exp_line_2='  ls: OK'
-
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${exp_line_2}" ]
+  [ "${output}" = '' ]
 }
 
 @test '#21 - extend_path with tool in (unchanged) PATH and path already in PATH succeeds, does not change PATH' {
@@ -467,10 +465,8 @@ function teardown
 
   run extend_path req_tools ext_paths
 
-  exp_line_2='  ls: OK'
-
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${exp_line_2}" ]
+  [ "${output}" = '' ]
 }
 
 @test '#23 - extend_path with tool in (unchanged) PATH and any path succeeds, does not change PATH' {
@@ -492,10 +488,8 @@ function teardown
 
   run extend_path req_tools ext_paths
 
-  exp_line_2='  ls: OK'
-
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${exp_line_2}" ]
+  [ "${output}" = '' ]
 }
 
 @test '#25 - extend_path with two tools in (unchanged) PATH and any path succeeds, does not change PATH' {
@@ -517,11 +511,8 @@ function teardown
 
   run extend_path req_tools ext_paths
 
-  exp_line_2='  cat: OK'
-  exp_line_3='  ls: OK'
-
   [ "${status}" -eq 0 ]
-  [ "${output}" = "${exp_line_2}"$'\n'"${exp_line_3}" ]
+  [ "${output}" = '' ]
 }
 
 @test '#27 - extend_path with five tools in (unchanged) PATH and any path succeeds, does not change PATH' {
@@ -543,18 +534,9 @@ function teardown
 
   run extend_path req_tools ext_paths
 
-  exp_line_2='  cat: OK'
-  exp_line_3='  chmod: OK'
-  exp_line_4='  cp: OK'
-  exp_line_5='  date: OK'
-  exp_line_6='  ls: OK'
-
   [ "${status}" -eq 0 ]
 
-  exp_out="${exp_line_2}"$'\n'"${exp_line_3}"$'\n'
-  exp_out+="${exp_line_4}"$'\n'"${exp_line_5}"$'\n'"${exp_line_6}"
-
-  [ "${output}" = "${exp_out}" ]
+  [ "${output}" = '' ]
 }
 
 # TODO: also test 1, 2, 5 items in ext_paths ?
@@ -613,16 +595,10 @@ function teardown
   run extend_path req_tools ext_paths
 
   exp_line_2="  ${tool_11}: FAIL"
-  # exp_line_3="  append ${folder_1} to PATH and retry:"
-  exp_line_4="  ${tool_11}: OK"
 
   [ "${status}" -eq 0 ]
 
-  exp_out="${exp_line_2}"$'\n'"${exp_line_4}"
-
-  # NOTE: this is only displayed if test fails
-  echo 'expected output:'$'\n'"${exp_out}"
-  echo 'actual output:'$'\n'"${output}"
+  exp_out="${exp_line_2}"
 
   [ "${output}" = "${exp_out}" ]
 }
@@ -649,14 +625,10 @@ function teardown
   # TODO: using read in here fails
   exp_line_2="  ${tool_11}: FAIL"
   exp_line_3="  ${tool_12}: FAIL"
-  # exp_line_4="  append ${folder_1} to PATH and retry:"
-  exp_line_5="  ${tool_11}: OK"
-  exp_line_6="  ${tool_12}: OK"
 
   [ "${status}" -eq 0 ]
 
-  exp_out="${exp_line_2}"$'\n'"${exp_line_3}"$'\n'
-  exp_out+="${exp_line_5}"$'\n'"${exp_line_6}"
+  exp_out="${exp_line_2}"$'\n'"${exp_line_3}"
 
   [ "${output}" = "${exp_out}" ]
 }
@@ -685,16 +657,11 @@ function teardown
   # TODO: using read in here fails
   exp_line_2="  ${tool_11}: FAIL"
   exp_line_3="  ${tool_21}: FAIL"
-  # exp_line_4="  append ${folder_1} to PATH and retry:"
-  exp_line_5="  ${tool_11}: OK"
   exp_line_6="  ${tool_21}: FAIL"
-  # exp_line_7="  append ${folder_2} to PATH and retry:"
-  exp_line_8="  ${tool_21}: OK"
 
   [ "${status}" -eq 0 ]
 
-  exp_out="${exp_line_2}"$'\n'"${exp_line_3}"$'\n'
-  exp_out+="${exp_line_5}"$'\n'"${exp_line_6}"$'\n'"${exp_line_8}"
+  exp_out="${exp_line_2}"$'\n'"${exp_line_3}"$'\n'"${exp_line_6}"
 
   [ "${output}" = "${exp_out}" ]
 }
